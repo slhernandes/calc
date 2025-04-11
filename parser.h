@@ -24,8 +24,7 @@ typedef struct {
 } RPNArray;
 
 void print_ra(const RPNArray *ra);
-RPNArray *compress_add_sub(DataArray *data);
-RPNArray *infix_to_rpn(const RPNArray *ra);
-void parser_ra_free(RPNArray *ra);
+RPNArray compress_add_sub(DataArray *data);
+RPNArray infix_to_rpn(const RPNArray *ra);
 
 #endif // PARSER_H

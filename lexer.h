@@ -5,10 +5,6 @@
 #include "nob.h"
 
 typedef enum {
-  // LeftBrace,
-  // RightBrace,
-  // LeftBracket,
-  // RightBracket,
   TT_LeftParen,
   TT_RightParen,
   TT_Add,
@@ -25,8 +21,8 @@ typedef enum {
 } TokenType;
 
 typedef union {
-  int int_val;
-  float float_val;
+  long int_val;
+  double float_val;
 } Number;
 
 typedef struct {
@@ -40,10 +36,9 @@ typedef struct {
   size_t capacity;
 } DataArray;
 
-char *skip_whitespaces(char *str_in);
+void skip_whitespaces(char *str_in);
 size_t read_num(char *str_in, Data *data);
 void tokenize(char *str_in, DataArray *tokens);
-void lexer_da_free(DataArray *da);
 void print_da(DataArray *da);
 
 #endif

@@ -51,11 +51,11 @@ void print_ra(const RPNArray *ra) {
       printf("TT_Exp\n");
     } break;
     case TT_NumberInt: {
-      int num = ra->items[i].token.data.int_val;
-      printf("TT_NumberInt(%d)\n", num);
+      long num = ra->items[i].token.data.int_val;
+      printf("TT_NumberInt(%ld)\n", num);
     } break;
     case TT_NumberFloat: {
-      float num = ra->items[i].token.data.float_val;
+      double num = ra->items[i].token.data.float_val;
       printf("TT_NumberFloat(%f)\n", num);
     } break;
     case TT_Illegal: {
@@ -67,13 +67,13 @@ void print_ra(const RPNArray *ra) {
   }
 }
 
-RPNArray *compress_add_sub(DataArray *data) {
+RPNArray compress_add_sub(DataArray *data) {
   Data filler = {
       .type = TT_Illegal,
       .data = {0},
   };
   da_append(data, filler);
-  RPNArray *ret = malloc(sizeof(DataArray));
+  RPNArray ret = {0};
   size_t orig_len = data->count;
   size_t count_neg = 0;
   bool start = false;
@@ -99,7 +99,7 @@ RPNArray *compress_add_sub(DataArray *data) {
             .tc = TC_Operator,
         };
 
-        da_append(ret, temp);
+        da_append(&ret, temp);
         count_neg = 0;
         start = false;
       }
@@ -132,7 +132,7 @@ RPNArray *compress_add_sub(DataArray *data) {
         default:
           assert(0 && "Unreachable!");
         }
-        da_append(ret, temp);
+        da_append(&ret, temp);
       }
     } else {
       start = true;
@@ -146,7 +146,7 @@ RPNArray *compress_add_sub(DataArray *data) {
   return ret;
 }
 
-int precedence(RPNToken token) {
+long precedence(RPNToken token) {
   switch (token.token.type) {
   case TT_Add:
   case TT_Sub: {
@@ -177,14 +177,14 @@ bool pop_op(RPNToken top, RPNToken in) {
   return lt || eq;
 }
 
-RPNArray *infix_to_rpn(const RPNArray *ra) {
-  RPNArray *ret = malloc(sizeof(RPNArray));
+RPNArray infix_to_rpn(const RPNArray *ra) {
+  RPNArray ret = {0};
   RPNArray op_q = {0};
   size_t ra_size = ra->count;
   for (size_t i = 0; i < ra_size; i++) {
     switch (ra->items[i].tc) {
     case TC_Number: {
-      da_append(ret, ra->items[i]);
+      da_append(&ret, ra->items[i]);
     } break;
     case TC_Operator: {
       size_t st_size = op_q.count;
@@ -195,7 +195,7 @@ RPNArray *infix_to_rpn(const RPNArray *ra) {
         for (; cnt > 0; cnt--) {
           RPNToken top = op_q.items[cnt - 1];
           if (pop_op(top, ra->items[i]))
-            da_append(ret, top);
+            da_append(&ret, top);
           else
             break;
         }
@@ -210,7 +210,7 @@ RPNArray *infix_to_rpn(const RPNArray *ra) {
         size_t idx = op_q.count - 1;
         while (op_q.items[idx].token.type != TT_LeftParen) {
           RPNToken top = op_q.items[idx];
-          da_append(ret, top);
+          da_append(&ret, top);
           if (idx > 0)
             idx--;
           else
@@ -229,10 +229,8 @@ RPNArray *infix_to_rpn(const RPNArray *ra) {
   }
   size_t st_size = op_q.count;
   for (size_t i = st_size; i > 0; i--) {
-    da_append(ret, op_q.items[i - 1]);
+    da_append(&ret, op_q.items[i - 1]);
   }
   op_q.count = 0;
   return ret;
 }
-
-void parser_ra_free(RPNArray *ra) { free(ra); }

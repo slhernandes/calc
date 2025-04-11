@@ -4,6 +4,7 @@
 #include <stdio.h>
 #define MAX_BUF_LEN 100
 
+#include <readline/history.h>
 #include <readline/readline.h>
 
 int main() {
@@ -20,9 +21,10 @@ int main() {
   // sb_append_null(&sb);
 
   char *input;
-  DataArray *tokens = malloc(sizeof(DataArray));
-  RPNArray *compressed, *rpn;
-  RetType *rt = malloc(sizeof(RetType));
+  DataArray tokens = {0};
+  RPNArray compressed = {0}, rpn = {0};
+  RetType rt;
+  using_history();
 
   while (true) {
     input = readline("calc> ");
@@ -30,11 +32,12 @@ int main() {
       goto fail;
     if (!strcmp(input, "exit"))
       goto quit;
-    tokens->count = 0;
-    tokenize(input, tokens);
+    add_history(input);
+    tokens.count = 0;
+    tokenize(input, &tokens);
 
-    compressed = compress_add_sub(tokens);
-    rpn = infix_to_rpn(compressed);
+    compressed = compress_add_sub(&tokens);
+    rpn = infix_to_rpn(&compressed);
 
 #ifdef DEBUG
     print_ra(compressed);
@@ -43,28 +46,20 @@ int main() {
     printf("--------------------\n");
 #endif
 
-    OptionNumber res = eval(rpn, rt);
+    OptionNumber res = eval(&rpn, &rt);
     // printf(
     //     "[\033[1;33mExpr\033[0m]:
     //     %s\n----------------------------------------"
     //     "----------------------\n",
     //     input);
-    print_on(res, *rt);
+    print_on(res, rt);
   }
   free(input);
   return 0;
 quit:
-  free(rt);
   free(input);
-  lexer_da_free(tokens);
-  parser_ra_free(compressed);
-  parser_ra_free(rpn);
   return 0;
 fail:
-  free(rt);
   free(input);
-  lexer_da_free(tokens);
-  parser_ra_free(compressed);
-  parser_ra_free(rpn);
   return 1;
 }

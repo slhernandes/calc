@@ -3,13 +3,12 @@
 #include <stddef.h>
 #include <string.h>
 
-char *skip_whitespaces(char *str_in) {
+void skip_whitespaces(char *str_in) {
   size_t str_size = strlen(str_in);
   while (str_size > 0 && isspace(str_in[0])) {
     str_in++;
     str_size = strlen(str_in);
   }
-  return str_in;
 }
 
 size_t read_num(char *str_in, Data *data) {
@@ -17,6 +16,7 @@ size_t read_num(char *str_in, Data *data) {
   size_t str_size = strlen(cpy);
   TokenType t_type = TT_NumberInt;
   size_t ret = 0;
+  bool end = false;
   for (size_t i = 0; i < str_size; i++) {
     if (isdigit(cpy[i])) {
       continue;
@@ -25,9 +25,12 @@ size_t read_num(char *str_in, Data *data) {
     } else {
       cpy[i] = '\0';
       ret = i - 1;
+      end = true;
       break;
     }
   }
+  if (!end)
+    ret = str_size;
   data->type = t_type;
   if (data->type == TT_NumberInt) {
     data->data.int_val = atoi(cpy);
@@ -56,13 +59,12 @@ bool next_is_sign(Data token) {
   UNREACHABLE("Unreachable!");
 }
 
-void tokenize(char *str_in, DataArray *tokens) {
-  char *now = strdup(str_in);
-  now = skip_whitespaces(now);
-  size_t str_size = strlen(now);
+void _tokenize_helper(char *str_in, DataArray *tokens) {
+  skip_whitespaces(str_in);
+  size_t str_size = strlen(str_in);
   if (str_size == 0)
     return;
-  switch (now[0]) {
+  switch (str_in[0]) {
   case '(': {
     Data cur = {
         .type = TT_LeftParen,
@@ -109,9 +111,9 @@ void tokenize(char *str_in, DataArray *tokens) {
   } break;
   case '/': {
     TokenType t_type = TT_Div;
-    if (str_size > 1 && now[1] == '/') {
+    if (str_size > 1 && str_in[1] == '/') {
       t_type = TT_IntDiv;
-      now++;
+      str_in++;
     }
     Data cur = {
         .type = t_type,
@@ -145,8 +147,8 @@ void tokenize(char *str_in, DataArray *tokens) {
   case '9':
   case '.': {
     Data cur = {0};
-    size_t offset = read_num(now, &cur);
-    now += offset;
+    size_t offset = read_num(str_in, &cur);
+    str_in += offset;
     da_append(tokens, cur);
     break;
   }
@@ -158,10 +160,15 @@ void tokenize(char *str_in, DataArray *tokens) {
     da_append(tokens, cur);
   }
   }
-  tokenize(++now, tokens);
+  if (strlen(str_in) > 1)
+    _tokenize_helper(++str_in, tokens);
 }
 
-void lexer_da_free(DataArray *da) { free(da); }
+void tokenize(char *str_in, DataArray *tokens) {
+  char *now = strdup(str_in);
+  _tokenize_helper(now, tokens);
+  free(now);
+}
 
 void print_da(DataArray *da) {
   for (size_t i = 0; i < da->count; i++) {
@@ -197,11 +204,11 @@ void print_da(DataArray *da) {
       printf("TT_Exp\n");
     } break;
     case TT_NumberInt: {
-      int num = da->items[i].data.int_val;
-      printf("TT_NumberInt(%d)\n", num);
+      long num = da->items[i].data.int_val;
+      printf("TT_NumberInt(%ld)\n", num);
     } break;
     case TT_NumberFloat: {
-      float num = da->items[i].data.float_val;
+      double num = da->items[i].data.float_val;
       printf("TT_NumberFloat(%f)\n", num);
     } break;
     case TT_Illegal: {

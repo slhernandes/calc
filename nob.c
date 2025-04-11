@@ -14,8 +14,13 @@ typedef struct {
 
 int main(int argc, char **argv) {
   NOB_GO_REBUILD_URSELF(argc, argv);
+
   char subcmd[MAX_BUF_LEN];
+  int force = 0;
+
   Cmd cmd = {0};
+
+  Files in_paths = {0};
   Files files = {0};
   da_append(&files, "lexer");
   da_append(&files, "parser");
@@ -42,30 +47,34 @@ int main(int argc, char **argv) {
         }
       }
       goto success;
+    } else if (!strcmp(argv[1], "-f") || !strcmp(argv[1], "--force")) {
+      force = 1;
     }
   }
 
   char out_path[MAX_BUF_LEN];
-  char in_path[MAX_BUF_LEN];
   for (size_t i = 0; i < files.count; i++) {
     sprintf(out_path, "%s.o", files.items[i]);
-    sprintf(in_path, "%s.c", files.items[i]);
-    if (needs_rebuild1(out_path, in_path)) {
+    // source files, then header next.
+    da_append(&in_paths, temp_sprintf("%s.c", files.items[i]));
+    if (strcmp(files.items[i], "main"))
+      da_append(&in_paths, temp_sprintf("%s.h", files.items[i]));
+    if (needs_rebuild(out_path, in_paths.items, in_paths.count) || force) {
       cmd_append(&cmd, "gcc", "-Wall", "-Wpedantic", "-Wextra", "-c", "-g",
-                 "-o", out_path, in_path);
+                 "-o", out_path, in_paths.items[0]);
 #ifdef DEBUG
       cmd_append(&cmd, "-DDEBUG");
 #endif
       if (!cmd_run_sync_and_reset(&cmd))
         goto fail;
     }
+    in_paths.count = 0;
   }
   sprintf(out_path, "calc");
-  Files in_paths = {0};
   for (size_t i = 0; i < files.count; i++) {
     da_append(&in_paths, temp_sprintf("%s.o", files.items[i]));
   }
-  if (needs_rebuild(out_path, in_paths.items, files.count)) {
+  if (needs_rebuild(out_path, in_paths.items, files.count) || force) {
     cmd_append(&cmd, "gcc", "-o", out_path, "-lm", "-lreadline");
     for (size_t i = 0; i < files.count; i++) {
       cmd_append(&cmd, temp_sprintf("%s.o", files.items[i]));

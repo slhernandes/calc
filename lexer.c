@@ -37,6 +37,25 @@ size_t read_num(char *str_in, Data *data) {
   return ret;
 }
 
+bool next_is_sign(Data token) {
+  switch (token.type) {
+  case TT_LeftParen:
+  case TT_Add:
+  case TT_Sub:
+  case TT_Mult:
+  case TT_Div:
+  case TT_IntDiv:
+  case TT_SignPos:
+  case TT_SignNeg:
+  case TT_Exp: {
+    return true;
+  } break;
+  default:
+    return false;
+  }
+  UNREACHABLE("Unreachable!");
+}
+
 void tokenize(char *str_in, DataArray *tokens) {
   char *now = strdup(str_in);
   now = skip_whitespaces(now);
@@ -59,17 +78,33 @@ void tokenize(char *str_in, DataArray *tokens) {
     da_append(tokens, cur);
   } break;
   case '+': {
-    Data cur = {
-        .type = TT_Add,
-        .data = {0},
-    };
+    Data cur = {0};
+    if (tokens->count == 0 || next_is_sign(da_last(tokens))) {
+      cur = (Data){
+          .type = TT_SignPos,
+          .data = {0},
+      };
+    } else {
+      cur = (Data){
+          .type = TT_Add,
+          .data = {0},
+      };
+    }
     da_append(tokens, cur);
   } break;
   case '-': {
-    Data cur = {
-        .type = TT_Sub,
-        .data = {0},
-    };
+    Data cur = {0};
+    if (tokens->count == 0 || next_is_sign(da_last(tokens))) {
+      cur = (Data){
+          .type = TT_SignNeg,
+          .data = {0},
+      };
+    } else {
+      cur = (Data){
+          .type = TT_Sub,
+          .data = {0},
+      };
+    }
     da_append(tokens, cur);
   } break;
   case '/': {
@@ -137,18 +172,6 @@ void print_da(DataArray *da) {
     case TT_RightParen: {
       printf("TT_RightParen\n");
     } break;
-    // case LeftBrace: {
-    //   printf("LeftBrace\n");
-    // } break;
-    // case RightBrace: {
-    //   printf("RightBrace\n");
-    // } break;
-    // case LeftBracket: {
-    //   printf("LeftBracket\n");
-    // } break;
-    // case RightBracket: {
-    //   printf("RightBracket\n");
-    // } break;
     case TT_Add: {
       printf("TT_Add\n");
     } break;
@@ -163,6 +186,12 @@ void print_da(DataArray *da) {
     } break;
     case TT_Mult: {
       printf("TT_Mult\n");
+    } break;
+    case TT_SignPos: {
+      printf("TT_SignPos\n");
+    } break;
+    case TT_SignNeg: {
+      printf("TT_SignNeg\n");
     } break;
     case TT_Exp: {
       printf("TT_Exp\n");

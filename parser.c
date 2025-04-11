@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "lexer.h"
 
 void print_ra(const RPNArray *ra) {
   for (size_t i = 0; i < ra->count; i++) {
@@ -40,6 +41,12 @@ void print_ra(const RPNArray *ra) {
     case TT_Mult: {
       printf("TT_Mult\n");
     } break;
+    case TT_SignPos: {
+      printf("TT_SignPos\n");
+    } break;
+    case TT_SignNeg: {
+      printf("TT_SignNeg\n");
+    } break;
     case TT_Exp: {
       printf("TT_Exp\n");
     } break;
@@ -71,17 +78,18 @@ RPNArray *compress_add_sub(DataArray *data) {
   size_t count_neg = 0;
   bool start = false;
   for (size_t i = 0; i < orig_len; i++) {
-    if (data->items[i].type != TT_Add && data->items[i].type != TT_Sub) {
+    if (data->items[i].type != TT_SignPos &&
+        data->items[i].type != TT_SignNeg) {
       if (start) {
         Data temp_data = {0};
         if (count_neg % 2) {
           temp_data = (Data){
-              .type = TT_Sub,
+              .type = TT_SignNeg,
               .data = {0},
           };
         } else {
           temp_data = (Data){
-              .type = TT_Add,
+              .type = TT_SignPos,
               .data = {0},
           };
         }
@@ -109,6 +117,8 @@ RPNArray *compress_add_sub(DataArray *data) {
         case TT_Div:
         case TT_IntDiv:
         case TT_Mult:
+        case TT_SignPos:
+        case TT_SignNeg:
         case TT_Exp: {
           temp.tc = TC_Operator;
         } break;
@@ -126,7 +136,7 @@ RPNArray *compress_add_sub(DataArray *data) {
       }
     } else {
       start = true;
-      if (data->items[i].type == TT_Sub) {
+      if (data->items[i].type == TT_SignNeg) {
         count_neg++;
       }
     }
@@ -147,8 +157,12 @@ int precedence(RPNToken token) {
   case TT_Mult: {
     return 1;
   } break;
-  case TT_Exp: {
+  case TT_SignPos:
+  case TT_SignNeg: {
     return 2;
+  } break;
+  case TT_Exp: {
+    return 3;
   } break;
   default:
     return -1;

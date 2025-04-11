@@ -1,5 +1,6 @@
 #include "eval.h"
 #include "lexer.h"
+#include "parser.h"
 
 int powii(int a, int b) {
   if (b < 0)
@@ -180,12 +181,21 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
   } break;
   case TT_Exp: {
     if (rt == RT_Int) {
-      int res = powii(fs.token.data.int_val, sc.token.data.int_val);
-      Number res_num = {
-          .int_val = res,
-      };
-      *ret_type = RT_Int;
-      return (OptionNumber){.some = res_num};
+      if (sc.token.data.int_val >= 0) {
+        int res = powii(fs.token.data.int_val, sc.token.data.int_val);
+        Number res_num = {
+            .int_val = res,
+        };
+        *ret_type = RT_Int;
+        return (OptionNumber){.some = res_num};
+      } else {
+        float res = powf(fs.token.data.int_val, sc.token.data.int_val);
+        Number res_num = {
+            .float_val = res,
+        };
+        *ret_type = RT_Float;
+        return (OptionNumber){.some = res_num};
+      }
     } else {
       float res;
       if (fs.token.type == TT_NumberFloat) {
@@ -209,20 +219,75 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
   }
 }
 
+OptionNumber calc_1_arg(RPNToken op, RPNToken token, RetType *ret_type) {
+  if (token.tc != TC_Number || op.tc != TC_Operator) {
+    *ret_type = RT_Error;
+    return (OptionNumber){.none = true};
+  }
+  int multiplier = 1;
+  switch (op.token.type) {
+  case TT_SignPos:
+    break;
+  case TT_SignNeg: {
+    multiplier = -1;
+  } break;
+  default:
+    *ret_type = RT_Error;
+    return (OptionNumber){.none = true};
+  }
+  if (token.token.type == TT_NumberFloat) {
+    *ret_type = RT_Float;
+    float ret_num = multiplier * token.token.data.float_val;
+    OptionNumber ret = {
+        .some =
+            (Number){
+                .float_val = ret_num,
+            },
+    };
+    return ret;
+  } else if (token.token.type == TT_NumberInt) {
+    *ret_type = RT_Int;
+    int ret_num = multiplier * token.token.data.int_val;
+    OptionNumber ret = {
+        .some =
+            (Number){
+                .int_val = ret_num,
+            },
+    };
+    return ret;
+  }
+  *ret_type = RT_Error;
+  return (OptionNumber){.none = true};
+}
+
 OptionNumber eval(const RPNArray *rpn, RetType *ret_type) {
   RPNArray num_stack = {0};
   for (size_t i = 0; i < rpn->count; i++) {
     switch (rpn->items[i].tc) {
     case TC_Operator: {
-      if (num_stack.count < 2) {
-        *ret_type = RT_Error;
-        return (OptionNumber){.none = true};
-      }
-      RPNToken fs = num_stack.items[num_stack.count - 2];
-      RPNToken sc = num_stack.items[num_stack.count - 1];
-      num_stack.count -= 2;
       RetType *rt = malloc(sizeof(RetType));
-      OptionNumber temp = calc_2_args(rpn->items[i], fs, sc, rt);
+      OptionNumber temp;
+      if (rpn->items[i].token.type == TT_SignNeg ||
+          rpn->items[i].token.type == TT_SignPos) {
+        if (num_stack.count < 1) {
+          *ret_type = RT_Error;
+          free(rt);
+          return (OptionNumber){.none = true};
+        }
+        RPNToken num_tok = num_stack.items[num_stack.count - 1];
+        num_stack.count--;
+        temp = calc_1_arg(rpn->items[i], num_tok, rt);
+      } else {
+        if (num_stack.count < 2) {
+          *ret_type = RT_Error;
+          free(rt);
+          return (OptionNumber){.none = true};
+        }
+        RPNToken left = num_stack.items[num_stack.count - 2];
+        RPNToken right = num_stack.items[num_stack.count - 1];
+        num_stack.count -= 2;
+        temp = calc_2_args(rpn->items[i], left, right, rt);
+      }
       Data temp_data;
       if (*rt == RT_Int) {
         temp_data = (Data){.type = TT_NumberInt, .data = temp.some};
@@ -236,6 +301,7 @@ OptionNumber eval(const RPNArray *rpn, RetType *ret_type) {
           .token = temp_data,
           .tc = TC_Number,
       };
+      free(rt);
       da_append(&num_stack, ret);
     } break;
     case TC_Number: {

@@ -1,8 +1,9 @@
+#include <stdio.h>
 #define NOB_IMPLEMENTATION
 #define NOB_STRIP_PREFIX
 #include "nob.h"
 
-// #define DEBUG
+#define DEBUG
 #define MAX_BUF_LEN 100
 
 typedef struct {
@@ -44,27 +45,43 @@ int main(int argc, char **argv) {
     }
   }
 
+  char out_path[MAX_BUF_LEN];
+  char in_path[MAX_BUF_LEN];
   for (size_t i = 0; i < files.count; i++) {
-    cmd_append(&cmd, "gcc", "-Wall", "-Wpedantic", "-Wextra", "-c", "-g", "-o",
-               temp_sprintf("%s.o", files.items[i]),
-               temp_sprintf("%s.c", files.items[i]));
+    sprintf(out_path, "%s.o", files.items[i]);
+    sprintf(in_path, "%s.c", files.items[i]);
+    if (needs_rebuild1(out_path, in_path)) {
+      cmd_append(&cmd, "gcc", "-Wall", "-Wpedantic", "-Wextra", "-c", "-g",
+                 "-o", out_path, in_path);
 #ifdef DEBUG
-    cmd_append(&cmd, "-DDEBUG");
+      cmd_append(&cmd, "-DDEBUG");
 #endif
+      if (!cmd_run_sync_and_reset(&cmd))
+        goto fail;
+    }
+  }
+  sprintf(out_path, "main");
+  Files in_paths = {0};
+  for (size_t i = 0; i < files.count; i++) {
+    da_append(&in_paths, temp_sprintf("%s.o", files.items[i]));
+  }
+  if (needs_rebuild(out_path, in_paths.items, files.count)) {
+    cmd_append(&cmd, "gcc", "-o", "main", "-lm");
+    for (size_t i = 0; i < files.count; i++) {
+      cmd_append(&cmd, temp_sprintf("%s.o", files.items[i]));
+    }
     if (!cmd_run_sync_and_reset(&cmd))
       goto fail;
+    nob_log(INFO, "Build Successful!");
+  } else {
+    nob_log(INFO, "Nothing to do!");
   }
-  cmd_append(&cmd, "gcc", "-o", "main", "-lm");
-  for (size_t i = 0; i < files.count; i++) {
-    cmd_append(&cmd, temp_sprintf("%s.o", files.items[i]));
-  }
-  if (!cmd_run_sync_and_reset(&cmd))
-    goto fail;
-  nob_log(INFO, "Build Successful!");
 success:
+  da_free(in_paths);
   da_free(files);
   return 0;
 fail:
+  da_free(in_paths);
   da_free(files);
   return 1;
 }

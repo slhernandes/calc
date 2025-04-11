@@ -215,6 +215,7 @@ OptionNumber eval(const RPNArray *rpn, RetType *ret_type) {
     switch (rpn->items[i].tc) {
     case TC_Operator: {
       if (num_stack.count < 2) {
+        *ret_type = RT_Error;
         return (OptionNumber){.none = true};
       }
       RPNToken fs = num_stack.items[num_stack.count - 2];
@@ -269,7 +270,9 @@ void print_on(OptionNumber on, RetType ret_type) {
     printf("[\033[1;31mERROR\033[0m] Invalid Syntax\n");
   } else if (ret_type == RT_Float) {
     printf("[\033[1;32mRESULT\033[0m] %f\n", on.some.float_val);
-  } else {
+  } else if (ret_type == RT_Int) {
     printf("[\033[1;32mRESULT\033[0m] %d\n", on.some.int_val);
+  } else {
+    UNREACHABLE("Invalid RetType");
   }
 }

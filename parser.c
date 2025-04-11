@@ -174,7 +174,7 @@ RPNArray *infix_to_rpn(const RPNArray *ra) {
     } break;
     case TC_Operator: {
       size_t st_size = op_q.count;
-      if (st_size == 0 || !pop_op(op_q.items[st_size - 1], ra->items[i])) {
+      if (st_size == 0 || !pop_op(da_last(&op_q), ra->items[i])) {
         da_append(&op_q, ra->items[i]);
       } else {
         size_t cnt = st_size;

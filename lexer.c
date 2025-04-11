@@ -48,6 +48,7 @@ bool next_is_sign(Data token) {
   case TT_Mult:
   case TT_Div:
   case TT_IntDiv:
+  case TT_Mod:
   case TT_SignPos:
   case TT_SignNeg:
   case TT_Exp: {
@@ -135,6 +136,13 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     };
     da_append(tokens, cur);
   } break;
+  case '%': {
+    Data cur = {
+        .type = TT_Mod,
+        .data = {0},
+    };
+    da_append(tokens, cur);
+  } break;
   case '0':
   case '1':
   case '2':
@@ -193,6 +201,9 @@ void print_da(DataArray *da) {
     } break;
     case TT_Mult: {
       printf("TT_Mult\n");
+    } break;
+    case TT_Mod: {
+      printf("TT_Mod\n");
     } break;
     case TT_SignPos: {
       printf("TT_SignPos\n");

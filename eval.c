@@ -179,6 +179,36 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
       return (OptionNumber){.some = res_num};
     }
   } break;
+  case TT_Mod: {
+    if (rt == RT_Int) {
+      long res = fs.token.data.int_val % sc.token.data.int_val;
+      Number res_num = {
+          .int_val = res,
+      };
+      *ret_type = RT_Int;
+      return (OptionNumber){.some = res_num};
+    } else {
+      double res;
+      if (fs.token.type == TT_NumberFloat) {
+        if (sc.token.type == TT_NumberFloat) {
+          res = remainder(fs.token.data.float_val, sc.token.data.float_val);
+        } else {
+          res =
+              remainder(fs.token.data.float_val, (double)sc.token.data.int_val);
+        }
+      } else {
+        res = remainder((double)fs.token.data.int_val, sc.token.data.float_val);
+      }
+      while (res < 0) {
+        res += sc.token.data.float_val;
+      }
+      Number res_num = {
+          .float_val = res,
+      };
+      *ret_type = RT_Float;
+      return (OptionNumber){.some = res_num};
+    }
+  } break;
   case TT_Exp: {
     if (rt == RT_Int) {
       if (sc.token.data.int_val >= 0) {

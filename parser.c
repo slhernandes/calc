@@ -41,6 +41,9 @@ void print_ra(const RPNArray *ra) {
     case TT_Mult: {
       printf("TT_Mult\n");
     } break;
+    case TT_Mod: {
+      printf("TT_Mod\n");
+    } break;
     case TT_SignPos: {
       printf("TT_SignPos\n");
     } break;
@@ -117,6 +120,7 @@ RPNArray compress_add_sub(DataArray *data) {
         case TT_Div:
         case TT_IntDiv:
         case TT_Mult:
+        case TT_Mod:
         case TT_SignPos:
         case TT_SignNeg:
         case TT_Exp: {
@@ -154,7 +158,8 @@ long precedence(RPNToken token) {
   } break;
   case TT_Div:
   case TT_IntDiv:
-  case TT_Mult: {
+  case TT_Mult:
+  case TT_Mod: {
     return 1;
   } break;
   case TT_SignPos:

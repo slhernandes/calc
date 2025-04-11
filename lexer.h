@@ -12,6 +12,7 @@ typedef enum {
   TT_Div,
   TT_IntDiv,
   TT_Mult,
+  TT_Mod,
   TT_SignPos,
   TT_SignNeg,
   TT_Exp,

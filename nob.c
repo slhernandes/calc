@@ -3,7 +3,7 @@
 #define NOB_STRIP_PREFIX
 #include "nob.h"
 
-#define DEBUG
+// #define DEBUG
 #define MAX_BUF_LEN 100
 
 typedef struct {
@@ -60,13 +60,13 @@ int main(int argc, char **argv) {
         goto fail;
     }
   }
-  sprintf(out_path, "main");
+  sprintf(out_path, "calc");
   Files in_paths = {0};
   for (size_t i = 0; i < files.count; i++) {
     da_append(&in_paths, temp_sprintf("%s.o", files.items[i]));
   }
   if (needs_rebuild(out_path, in_paths.items, files.count)) {
-    cmd_append(&cmd, "gcc", "-o", "main", "-lm");
+    cmd_append(&cmd, "gcc", "-o", out_path, "-lm", "-lreadline");
     for (size_t i = 0; i < files.count; i++) {
       cmd_append(&cmd, temp_sprintf("%s.o", files.items[i]));
     }

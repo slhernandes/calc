@@ -19,14 +19,21 @@ int main() {
   DataArray *tokens = malloc(sizeof(DataArray));
   tokenize(sb.items, tokens);
   RPNArray *compressed = compress_add_sub(tokens);
+#ifdef DEBUG
   print_ra(compressed);
   printf("--------------------\n");
+#endif
   RPNArray *rpn = infix_to_rpn(compressed);
+#ifdef DEBUG
   print_ra(rpn);
+  printf("--------------------\n");
+#endif
   RetType *rt = malloc(sizeof(RetType));
   OptionNumber res = eval(rpn, rt);
   print_on(res, *rt);
+  free(rt);
   lexer_da_free(tokens);
   parser_ra_free(compressed);
   parser_ra_free(rpn);
+  return 0;
 }

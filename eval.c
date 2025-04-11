@@ -2,6 +2,8 @@
 #include "lexer.h"
 
 int powii(int a, int b) {
+  if (b < 0)
+    return 0;
   if (b == 0)
     return 1;
   if (b == 1)
@@ -215,8 +217,8 @@ OptionNumber eval(const RPNArray *rpn, RetType *ret_type) {
       if (num_stack.count < 2) {
         return (OptionNumber){.none = true};
       }
-      RPNToken fs = num_stack.items[num_stack.count - 1];
-      RPNToken sc = num_stack.items[num_stack.count - 2];
+      RPNToken fs = num_stack.items[num_stack.count - 2];
+      RPNToken sc = num_stack.items[num_stack.count - 1];
       num_stack.count -= 2;
       RetType *rt = malloc(sizeof(RetType));
       OptionNumber temp = calc_2_args(rpn->items[i], fs, sc, rt);

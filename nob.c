@@ -1,5 +1,6 @@
 #define NOB_IMPLEMENTATION
 #define NOB_STRIP_PREFIX
+#define DEBUG
 #include "nob.h"
 
 typedef struct {
@@ -19,11 +20,14 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < files.count; i++) {
     cmd_append(&cmd, "gcc", "-Wall", "-Wpedantic", "-Wextra", "-c", "-g", "-o",
                temp_sprintf("%s.o", files.items[i]),
-               temp_sprintf("%s.c", files.items[i]), "-lm");
+               temp_sprintf("%s.c", files.items[i]));
+#ifdef DEBUG
+    cmd_append(&cmd, "-DDEBUG");
+#endif
     if (!cmd_run_sync_and_reset(&cmd))
       goto fail;
   }
-  cmd_append(&cmd, "gcc", "-o", "main");
+  cmd_append(&cmd, "gcc", "-o", "main", "-lm");
   for (size_t i = 0; i < files.count; i++) {
     cmd_append(&cmd, temp_sprintf("%s.o", files.items[i]));
   }

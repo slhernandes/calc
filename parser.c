@@ -214,7 +214,6 @@ RPNArray *infix_to_rpn(const RPNArray *ra) {
     }
   }
   size_t st_size = op_q.count;
-  printf("size: %ld\n", st_size);
   for (size_t i = st_size; i > 0; i--) {
     da_append(ret, op_q.items[i - 1]);
   }

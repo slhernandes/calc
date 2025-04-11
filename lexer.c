@@ -58,34 +58,6 @@ void tokenize(char *str_in, DataArray *tokens) {
     };
     da_append(tokens, cur);
   } break;
-  // case '{': {
-  //   Data cur = {
-  //       .type = LeftBrace,
-  //       .data = {0},
-  //   };
-  //   da_append(tokens, cur);
-  // } break;
-  // case '}': {
-  //   Data cur = {
-  //       .type = RightBrace,
-  //       .data = {0},
-  //   };
-  //   da_append(tokens, cur);
-  // } break;
-  // case '[': {
-  //   Data cur = {
-  //       .type = LeftBracket,
-  //       .data = {0},
-  //   };
-  //   da_append(tokens, cur);
-  // } break;
-  // case ']': {
-  //   Data cur = {
-  //       .type = RightBracket,
-  //       .data = {0},
-  //   };
-  //   da_append(tokens, cur);
-  // } break;
   case '+': {
     Data cur = {
         .type = TT_Add,

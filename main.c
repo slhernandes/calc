@@ -1,3 +1,4 @@
+#include "eval.h"
 #include "lexer.h"
 #include "parser.h"
 #include <stdio.h>
@@ -19,7 +20,13 @@ int main() {
   tokenize(sb.items, tokens);
   RPNArray *compressed = compress_add_sub(tokens);
   print_ra(compressed);
-  printf("--------------------\n%s", sb.items);
+  printf("--------------------\n");
+  RPNArray *rpn = infix_to_rpn(compressed);
+  print_ra(rpn);
+  RetType *rt = malloc(sizeof(RetType));
+  OptionNumber res = eval(rpn, rt);
+  print_on(res, *rt);
   lexer_da_free(tokens);
   parser_ra_free(compressed);
+  parser_ra_free(rpn);
 }

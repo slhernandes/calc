@@ -1,5 +1,4 @@
 #include "parser.h"
-#include <stdbool.h>
 
 void print_ra(const RPNArray *ra) {
   for (size_t i = 0; i < ra->count; i++) {
@@ -132,11 +131,94 @@ RPNArray *compress_add_sub(DataArray *data) {
       }
     }
   }
+  // Remove the last illegal token
+  data->count--;
   return ret;
+}
+
+int precedence(RPNToken token) {
+  switch (token.token.type) {
+  case TT_Add:
+  case TT_Sub: {
+    return 0;
+  } break;
+  case TT_Div:
+  case TT_IntDiv:
+  case TT_Mult: {
+    return 1;
+  } break;
+  case TT_Exp: {
+    return 2;
+  } break;
+  default:
+    return -1;
+  }
+  assert(0 && "Unreachable!");
+  return -2;
+}
+
+bool pop_op(RPNToken top, RPNToken in) {
+  bool lt = precedence(in) < precedence(top);
+  bool eq = (precedence(in) == precedence(top)) && (in.token.type != TT_Exp);
+  return lt || eq;
 }
 
 RPNArray *infix_to_rpn(const RPNArray *ra) {
   RPNArray *ret = malloc(sizeof(RPNArray));
+  RPNArray op_q = {0};
+  size_t ra_size = ra->count;
+  for (size_t i = 0; i < ra_size; i++) {
+    switch (ra->items[i].tc) {
+    case TC_Number: {
+      da_append(ret, ra->items[i]);
+    } break;
+    case TC_Operator: {
+      size_t st_size = op_q.count;
+      if (st_size == 0 || !pop_op(op_q.items[st_size - 1], ra->items[i])) {
+        da_append(&op_q, ra->items[i]);
+      } else {
+        size_t cnt = st_size;
+        for (; cnt > 0; cnt--) {
+          RPNToken top = op_q.items[cnt - 1];
+          if (pop_op(top, ra->items[i]))
+            da_append(ret, top);
+          else
+            break;
+        }
+        op_q.count = cnt;
+        da_append(&op_q, ra->items[i]);
+      }
+    } break;
+    case TC_Parens: {
+      if (ra->items[i].token.type == TT_LeftParen) {
+        da_append(&op_q, ra->items[i]);
+      } else if (op_q.count > 0) {
+        size_t idx = op_q.count - 1;
+        while (op_q.items[idx].token.type != TT_LeftParen) {
+          RPNToken top = op_q.items[idx];
+          da_append(ret, top);
+          if (idx > 0)
+            idx--;
+          else
+            break;
+        }
+        op_q.count = idx;
+      } else {
+        assert(0 && "Unreachable!");
+      }
+    } break;
+    case TC_Illegal: {
+    } break;
+    default:
+      assert(0 && "Unreachable!");
+    }
+  }
+  size_t st_size = op_q.count;
+  printf("size: %ld\n", st_size);
+  for (size_t i = st_size; i > 0; i--) {
+    da_append(ret, op_q.items[i - 1]);
+  }
+  op_q.count = 0;
   return ret;
 }
 

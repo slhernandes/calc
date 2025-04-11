@@ -14,11 +14,12 @@ int main(int argc, char **argv) {
   Files files = {0};
   da_append(&files, "lexer");
   da_append(&files, "parser");
+  da_append(&files, "eval");
   da_append(&files, "main");
   for (size_t i = 0; i < files.count; i++) {
     cmd_append(&cmd, "gcc", "-Wall", "-Wpedantic", "-Wextra", "-c", "-g", "-o",
                temp_sprintf("%s.o", files.items[i]),
-               temp_sprintf("%s.c", files.items[i]));
+               temp_sprintf("%s.c", files.items[i]), "-lm");
     if (!cmd_run_sync_and_reset(&cmd))
       goto fail;
   }

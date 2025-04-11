@@ -30,6 +30,10 @@ int main() {
 #endif
   RetType *rt = malloc(sizeof(RetType));
   OptionNumber res = eval(rpn, rt);
+  printf(
+      "[\033[1;33mExpr\033[0m]:\n%s\n----------------------------------------"
+      "----------------------\n",
+      sb.items);
   print_on(res, *rt);
   free(rt);
   lexer_da_free(tokens);

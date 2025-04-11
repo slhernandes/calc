@@ -269,9 +269,9 @@ void print_on(OptionNumber on, RetType ret_type) {
   if (ret_type == RT_Error) {
     printf("[\033[1;31mERROR\033[0m] Invalid Syntax\n");
   } else if (ret_type == RT_Float) {
-    printf("[\033[1;32mRESULT\033[0m] %f\n", on.some.float_val);
+    printf("[\033[1;32mRESULT\033[0m]: %f\n", on.some.float_val);
   } else if (ret_type == RT_Int) {
-    printf("[\033[1;32mRESULT\033[0m] %d\n", on.some.int_val);
+    printf("[\033[1;32mRESULT\033[0m]: %d\n", on.some.int_val);
   } else {
     UNREACHABLE("Invalid RetType");
   }

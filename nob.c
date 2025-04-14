@@ -1,10 +1,10 @@
-#include <stdio.h>
 #define NOB_IMPLEMENTATION
 #define NOB_STRIP_PREFIX
 #include "nob.h"
 
 // #define DEBUG
 #define MAX_BUF_LEN 100
+#define path_from_home(path) temp_sprintf("%s/" path, getenv("HOME"))
 
 typedef struct {
   const char **items;
@@ -43,6 +43,36 @@ int main(int argc, char **argv) {
       goto success;
     } else if (!strcmp(argv[1], "-f") || !strcmp(argv[1], "--force")) {
       force = 1;
+    } else if (!strcmp(argv[1], "install")) {
+      // just in case mkdir_if_not_exists doesn't work
+      char *home = getenv("HOME");
+      int res = file_exists(path_from_home(".local/bin"));
+      if (res == 0) {
+        mkdir_if_not_exists("./build");
+      } else if (res == -1) {
+        goto fail;
+      }
+      printf("~/.local/bin/calc exists? %d\n",
+             file_exists(path_from_home(".local/bin/calc")));
+      if (file_exists(path_from_home(".local/bin/calc")) == 1) {
+        bool overwrite = false;
+        printf("Overwrite ~/.local/bin/calc? [y/N]: ");
+        char c;
+        scanf("%c", &c);
+        if (c == 'y' || c == 'Y') {
+          overwrite = true;
+        }
+        if (overwrite) {
+          if (!copy_file("./build/calc", path_from_home(".local/bin/calc")))
+            goto fail;
+        } else {
+          nob_log(INFO, "~/.local/bin/calc won't be overwriten.");
+        }
+      } else {
+        if (!copy_file("./build/calc", path_from_home(".local/bin/calc")))
+          goto fail;
+      }
+      goto success;
     }
   }
 

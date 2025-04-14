@@ -37,7 +37,7 @@ Example:
 calc> a = (150//(10+2^2)+7) * (6 % 4)
 [RESULT]: 34
 calc> b = (1337-420)/26.2
-[RESULT]: 35
+[RESULT]: 35.000000
 calc> a + b
 [RESULT]: 69.000000
 calc> exit

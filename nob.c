@@ -52,12 +52,12 @@ int main(int argc, char **argv) {
       } else if (res == -1) {
         goto fail;
       }
-      nob_log(INFO, "~/.local/bin/calc exists? %d\n",
+      nob_log(INFO, "~/.local/bin/calc exists? %d",
               file_exists(path_from_home(".local/bin/calc")));
       if (file_exists(path_from_home(".local/bin/calc")) == 1) {
         bool overwrite = false;
-        nob_log(WARNING,
-                "~/.local/bin/calc will be overwritten. Are you sure? [y/N]: ");
+        printf("[WARNING] ~/.local/bin/calc will be overwritten. Are you sure? "
+               "[y/N]: ");
         char c;
         scanf("%c", &c);
         if (c == 'y' || c == 'Y') {

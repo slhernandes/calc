@@ -2,10 +2,11 @@
 #include "lexer.h"
 #include "parser.h"
 #include <stdio.h>
-#define MAX_BUF_LEN 100
 
 #include <readline/history.h>
 #include <readline/readline.h>
+
+#define MAX_BUF_LEN 100
 
 int main() {
   // Old input
@@ -23,7 +24,7 @@ int main() {
   char *input;
   DataArray tokens = {0};
   RPNArray compressed = {0}, rpn = {0};
-  RetType rt;
+  MapStrRV *map = NULL;
   using_history();
 
   while (true) {
@@ -40,26 +41,33 @@ int main() {
     rpn = infix_to_rpn(&compressed);
 
 #ifdef DEBUG
-    print_ra(compressed);
+    print_ra(&compressed);
     printf("--------------------\n");
-    print_ra(rpn);
+    print_ra(&rpn);
     printf("--------------------\n");
 #endif
 
-    OptionNumber res = eval(&rpn, &rt);
-    // printf(
-    //     "[\033[1;33mExpr\033[0m]:
-    //     %s\n----------------------------------------"
-    //     "----------------------\n",
-    //     input);
-    print_on(res, rt);
+    RetValue res = eval(&rpn, &map);
+    print_rv(res);
   }
+  clear_history();
   free(input);
+  da_free(tokens);
+  da_free(compressed);
+  da_free(rpn);
   return 0;
 quit:
+  clear_history();
+  da_free(tokens);
+  da_free(compressed);
+  da_free(rpn);
   free(input);
   return 0;
 fail:
+  clear_history();
+  da_free(tokens);
+  da_free(compressed);
+  da_free(rpn);
   free(input);
   return 1;
 }

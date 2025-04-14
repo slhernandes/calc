@@ -18,17 +18,20 @@ typedef enum {
   TT_Exp,
   TT_NumberInt,
   TT_NumberFloat,
+  TT_Ident,
+  TT_Assign,
   TT_Illegal
 } TokenType;
 
 typedef union {
   long int_val;
   double float_val;
-} Number;
+  char *str_val;
+} DataValue;
 
 typedef struct {
   TokenType type;
-  Number data;
+  DataValue data;
 } Data;
 
 typedef struct {
@@ -37,8 +40,9 @@ typedef struct {
   size_t capacity;
 } DataArray;
 
-void skip_whitespaces(char *str_in);
+size_t skip_whitespaces(char *str_in);
 size_t read_num(char *str_in, Data *data);
+size_t read_ident(char *str_in, Data *data);
 void tokenize(char *str_in, DataArray *tokens);
 void print_da(DataArray *da);
 

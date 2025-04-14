@@ -6,7 +6,7 @@
 #include "nob.h"
 
 typedef enum {
-  TC_Number,
+  TC_Operand,
   TC_Operator,
   TC_Parens,
   TC_Illegal,

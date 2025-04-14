@@ -4,7 +4,7 @@
 void print_ra(const RPNArray *ra) {
   for (size_t i = 0; i < ra->count; i++) {
     switch (ra->items[i].tc) {
-    case TC_Number: {
+    case TC_Operand: {
       printf("Number: ");
     } break;
     case TC_Operator: {
@@ -17,7 +17,7 @@ void print_ra(const RPNArray *ra) {
       printf("Illegal: ");
     } break;
     default:
-      assert(0 && "Unreachable!");
+      UNREACHABLE("Unreachable!");
     }
     switch (ra->items[i].token.type) {
     case TT_LeftParen: {
@@ -61,11 +61,17 @@ void print_ra(const RPNArray *ra) {
       double num = ra->items[i].token.data.float_val;
       printf("TT_NumberFloat(%f)\n", num);
     } break;
+    case TT_Assign: {
+      printf("TT_Assign\n");
+    } break;
+    case TT_Ident: {
+      printf("TT_Ident(%s)\n", ra->items[i].token.data.str_val);
+    } break;
     case TT_Illegal: {
       printf("TT_Illegal\n");
     } break;
     default:
-      assert(0 && "Unreachable!");
+      UNREACHABLE("Unreachable!");
     }
   }
 }
@@ -123,18 +129,20 @@ RPNArray compress_add_sub(DataArray *data) {
         case TT_Mod:
         case TT_SignPos:
         case TT_SignNeg:
+        case TT_Assign:
         case TT_Exp: {
           temp.tc = TC_Operator;
         } break;
+        case TT_Ident:
         case TT_NumberInt:
         case TT_NumberFloat: {
-          temp.tc = TC_Number;
+          temp.tc = TC_Operand;
         } break;
         case TT_Illegal: {
           temp.tc = TC_Illegal;
         } break;
         default:
-          assert(0 && "Unreachable!");
+          UNREACHABLE("Unreachable!");
         }
         da_append(&ret, temp);
       }
@@ -152,33 +160,47 @@ RPNArray compress_add_sub(DataArray *data) {
 
 long precedence(RPNToken token) {
   switch (token.token.type) {
+  case TT_Assign: {
+    return 0;
+  } break;
   case TT_Add:
   case TT_Sub: {
-    return 0;
+    return 1;
   } break;
   case TT_Div:
   case TT_IntDiv:
   case TT_Mult:
   case TT_Mod: {
-    return 1;
-  } break;
-  case TT_SignPos:
-  case TT_SignNeg: {
     return 2;
   } break;
+  case TT_SignPos:
+  case TT_SignNeg:
   case TT_Exp: {
     return 3;
   } break;
   default:
     return -1;
   }
-  assert(0 && "Unreachable!");
+  UNREACHABLE("Unreachable!");
   return -2;
+}
+
+int assoc(TokenType tt) {
+  switch (tt) {
+  case TT_SignNeg:
+  case TT_SignPos:
+  case TT_Exp: {
+    return 1;
+  } break;
+  default:
+    return 0;
+  }
+  UNREACHABLE("Unreachable!");
 }
 
 bool pop_op(RPNToken top, RPNToken in) {
   bool lt = precedence(in) < precedence(top);
-  bool eq = (precedence(in) == precedence(top)) && (in.token.type != TT_Exp);
+  bool eq = (precedence(in) == precedence(top)) && (assoc(in.token.type) != 1);
   return lt || eq;
 }
 
@@ -188,7 +210,7 @@ RPNArray infix_to_rpn(const RPNArray *ra) {
   size_t ra_size = ra->count;
   for (size_t i = 0; i < ra_size; i++) {
     switch (ra->items[i].tc) {
-    case TC_Number: {
+    case TC_Operand: {
       da_append(&ret, ra->items[i]);
     } break;
     case TC_Operator: {
@@ -223,13 +245,13 @@ RPNArray infix_to_rpn(const RPNArray *ra) {
         }
         op_q.count = idx;
       } else {
-        assert(0 && "Unreachable!");
+        UNREACHABLE("Unreachable!");
       }
     } break;
     case TC_Illegal: {
     } break;
     default:
-      assert(0 && "Unreachable!");
+      UNREACHABLE("Unreachable!");
     }
   }
   size_t st_size = op_q.count;

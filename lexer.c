@@ -3,12 +3,13 @@
 #include <stddef.h>
 #include <string.h>
 
-void skip_whitespaces(char *str_in) {
+size_t skip_whitespaces(char *str_in) {
   size_t str_size = strlen(str_in);
-  while (str_size > 0 && isspace(str_in[0])) {
-    str_in++;
-    str_size = strlen(str_in);
+  size_t offset = 0;
+  while (str_size > offset && isspace(str_in[offset])) {
+    offset++;
   }
+  return offset;
 }
 
 size_t read_num(char *str_in, Data *data) {
@@ -37,6 +38,32 @@ size_t read_num(char *str_in, Data *data) {
   } else {
     data->data.float_val = atof(cpy);
   }
+  free(cpy);
+  return ret;
+}
+
+size_t read_ident(char *str_in, Data *data) {
+  char *cpy = strdup(str_in);
+  size_t str_size = strlen(cpy);
+  TokenType t_type = TT_Ident;
+  size_t ret = 0;
+  bool end = false;
+  for (size_t i = 1; i < str_size; i++) {
+    if (isalnum(cpy[i]) || cpy[i] == '_') {
+      continue;
+    } else {
+      cpy[i] = '\0';
+      ret = i - 1;
+      end = true;
+      break;
+    }
+  }
+  if (!end)
+    ret = str_size;
+  data->type = t_type;
+  data->data = (DataValue){
+      .str_val = cpy,
+  };
   return ret;
 }
 
@@ -61,7 +88,8 @@ bool next_is_sign(Data token) {
 }
 
 void _tokenize_helper(char *str_in, DataArray *tokens) {
-  skip_whitespaces(str_in);
+  size_t offset = skip_whitespaces(str_in);
+  str_in += offset;
   size_t str_size = strlen(str_in);
   if (str_size == 0)
     return;
@@ -143,16 +171,7 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     };
     da_append(tokens, cur);
   } break;
-  case '0':
-  case '1':
-  case '2':
-  case '3':
-  case '4':
-  case '5':
-  case '6':
-  case '7':
-  case '8':
-  case '9':
+  case '0' ... '9':
   case '.': {
     Data cur = {0};
     size_t offset = read_num(str_in, &cur);
@@ -160,6 +179,21 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     da_append(tokens, cur);
     break;
   }
+  case 'a' ... 'z':
+  case 'A' ... 'Z':
+  case '_': {
+    Data cur = {0};
+    size_t offset = read_ident(str_in, &cur);
+    str_in += offset;
+    da_append(tokens, cur);
+  } break;
+  case '=': {
+    Data cur = {
+        .type = TT_Assign,
+        .data = {0},
+    };
+    da_append(tokens, cur);
+  } break;
   default: {
     Data cur = {
         .type = TT_Illegal,
@@ -222,11 +256,17 @@ void print_da(DataArray *da) {
       double num = da->items[i].data.float_val;
       printf("TT_NumberFloat(%f)\n", num);
     } break;
+    case TT_Assign: {
+      printf("TT_Assign\n");
+    } break;
+    case TT_Ident: {
+      printf("TT_Ident(%s)\n", da->items[i].data.str_val);
+    } break;
     case TT_Illegal: {
       printf("TT_Illegal\n");
     } break;
     default:
-      assert(0 && "Unreachable!");
+      UNREACHABLE("Unreachable!");
     }
   }
 }

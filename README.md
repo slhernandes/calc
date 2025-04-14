@@ -2,7 +2,7 @@
 
 > [!WARNING]
 > This is a finished test project to try out [stb_ds.h](https://github.com/nothings/stb/blob/master/stb_ds.h), [nob.h](https://github.com/tsoding/nob.h), and [readline](https://www.gnu.org/software/readline/).
-> Any bugs left in this code will probably not get fixed.
+> Any bugs left in this code will probably not be fixed.
 
 A simple CLI calculator app in C.
 

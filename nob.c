@@ -30,21 +30,15 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     if (!strcmp(argv[1], "clean")) {
       for (size_t i = 0; i < files.count; i++) {
-        int res = file_exists(temp_sprintf("%s.o", files.items[i]));
-        if (res == 1) {
-          cmd_append(&cmd, "rm", temp_sprintf("%s.o", files.items[i]));
-          if (!cmd_run_sync_and_reset(&cmd))
-            goto fail;
-        } else if (res == 0) {
-          continue;
-        } else if (res == -1) {
-          goto fail;
-        } else {
-          fprintf(stderr, "%s:%d: UNREACHABLE: %s\n",
-                  "/home/samuelhernandes/Dokumente/test/calc/nob.c", 37,
-                  "Unreachable!");
+        if (!delete_file(temp_sprintf("./build/%s.o", files.items[i]))) {
           goto fail;
         }
+      }
+      if (!delete_file("./build/calc")) {
+        goto fail;
+      }
+      if (!delete_file("./build")) {
+        goto fail;
       }
       goto success;
     } else if (!strcmp(argv[1], "-f") || !strcmp(argv[1], "--force")) {
@@ -52,9 +46,10 @@ int main(int argc, char **argv) {
     }
   }
 
+  mkdir_if_not_exists("./build");
   char out_path[MAX_BUF_LEN];
   for (size_t i = 0; i < files.count; i++) {
-    sprintf(out_path, "%s.o", files.items[i]);
+    sprintf(out_path, "./build/%s.o", files.items[i]);
     // source files, then header next.
     da_append(&in_paths, temp_sprintf("%s.c", files.items[i]));
     if (strcmp(files.items[i], "main"))
@@ -70,14 +65,14 @@ int main(int argc, char **argv) {
     }
     in_paths.count = 0;
   }
-  sprintf(out_path, "calc");
+  sprintf(out_path, "./build/calc");
   for (size_t i = 0; i < files.count; i++) {
-    da_append(&in_paths, temp_sprintf("%s.o", files.items[i]));
+    da_append(&in_paths, temp_sprintf("./build/%s.o", files.items[i]));
   }
   if (needs_rebuild(out_path, in_paths.items, files.count) || force) {
     cmd_append(&cmd, "gcc", "-o", out_path, "-lm", "-lreadline");
     for (size_t i = 0; i < files.count; i++) {
-      cmd_append(&cmd, temp_sprintf("%s.o", files.items[i]));
+      cmd_append(&cmd, temp_sprintf("./build/%s.o", files.items[i]));
     }
     if (!cmd_run_sync_and_reset(&cmd))
       goto fail;

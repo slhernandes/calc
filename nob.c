@@ -52,11 +52,12 @@ int main(int argc, char **argv) {
       } else if (res == -1) {
         goto fail;
       }
-      printf("~/.local/bin/calc exists? %d\n",
-             file_exists(path_from_home(".local/bin/calc")));
+      nob_log(INFO, "~/.local/bin/calc exists? %d\n",
+              file_exists(path_from_home(".local/bin/calc")));
       if (file_exists(path_from_home(".local/bin/calc")) == 1) {
         bool overwrite = false;
-        printf("Overwrite ~/.local/bin/calc? [y/N]: ");
+        nob_log(WARNING,
+                "~/.local/bin/calc will be overwritten. Are you sure? [y/N]: ");
         char c;
         scanf("%c", &c);
         if (c == 'y' || c == 'Y') {
@@ -66,7 +67,7 @@ int main(int argc, char **argv) {
           if (!copy_file("./build/calc", path_from_home(".local/bin/calc")))
             goto fail;
         } else {
-          nob_log(INFO, "~/.local/bin/calc won't be overwriten.");
+          nob_log(INFO, "Cancelled installation");
         }
       } else {
         if (!copy_file("./build/calc", path_from_home(".local/bin/calc")))

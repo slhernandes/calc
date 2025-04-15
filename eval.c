@@ -2,7 +2,6 @@
 #include "lexer.h"
 #include "parser.h"
 
-#define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 
 long powll(long a, long b) {
@@ -69,8 +68,8 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
       return (OptionNumber){.some = res_num};
     } else {
       double res;
-      if (fs.token.type == TT_NumberFloat) {
-        if (sc.token.type == TT_NumberFloat) {
+      if (fsrv.ret_type == RT_Float) {
+        if (scrv.ret_type == RT_Float) {
           res = fsrv.opt_num.some.float_val + scrv.opt_num.some.float_val;
         } else {
           res = fsrv.opt_num.some.float_val + scrv.opt_num.some.int_val;
@@ -95,8 +94,8 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
       return (OptionNumber){.some = res_num};
     } else {
       double res;
-      if (fs.token.type == TT_NumberFloat) {
-        if (sc.token.type == TT_NumberFloat) {
+      if (fsrv.ret_type == RT_Float) {
+        if (scrv.ret_type == RT_Float) {
           res = fsrv.opt_num.some.float_val - scrv.opt_num.some.float_val;
         } else {
           res = fsrv.opt_num.some.float_val - scrv.opt_num.some.int_val;
@@ -114,8 +113,8 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
   case TT_Div: {
     // rt = RT_Float;
     double res;
-    if (fs.token.type == TT_NumberFloat) {
-      if (sc.token.type == TT_NumberFloat) {
+    if (fsrv.ret_type == RT_Float) {
+      if (scrv.ret_type == RT_Float) {
         if (scrv.opt_num.some.float_val == 0.0) {
           goto fail;
         }
@@ -127,7 +126,7 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
         res = fsrv.opt_num.some.float_val / (double)scrv.opt_num.some.int_val;
       }
     } else {
-      if (sc.token.type == TT_NumberFloat) {
+      if (scrv.ret_type == RT_Float) {
         if (scrv.opt_num.some.float_val == 0.0) {
           goto fail;
         }
@@ -149,8 +148,8 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
   case TT_IntDiv: {
     // rt = RT_Int;
     long res;
-    if (fs.token.type == TT_NumberFloat) {
-      if (sc.token.type == TT_NumberFloat) {
+    if (fsrv.ret_type == RT_Float) {
+      if (scrv.ret_type == RT_Float) {
         if (scrv.opt_num.some.float_val == 0.0) {
           goto fail;
         }
@@ -162,7 +161,7 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
         res = (long)(fsrv.opt_num.some.float_val / scrv.opt_num.some.int_val);
       }
     } else {
-      if (sc.token.type == TT_NumberFloat) {
+      if (scrv.ret_type == RT_Float) {
         if (scrv.opt_num.some.float_val == 0.0) {
           goto fail;
         }
@@ -190,8 +189,8 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
       return (OptionNumber){.some = res_num};
     } else {
       double res;
-      if (fs.token.type == TT_NumberFloat) {
-        if (sc.token.type == TT_NumberFloat) {
+      if (fsrv.ret_type == RT_Float) {
+        if (scrv.ret_type == RT_Float) {
           res = fsrv.opt_num.some.float_val * scrv.opt_num.some.float_val;
         } else {
           res = fsrv.opt_num.some.float_val * scrv.opt_num.some.int_val;
@@ -216,8 +215,8 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
       return (OptionNumber){.some = res_num};
     } else {
       double res;
-      if (fs.token.type == TT_NumberFloat) {
-        if (sc.token.type == TT_NumberFloat) {
+      if (fsrv.ret_type == RT_Float) {
+        if (scrv.ret_type == RT_Float) {
           res = remainder(fsrv.opt_num.some.float_val,
                           scrv.opt_num.some.float_val);
         } else {
@@ -257,8 +256,8 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
       }
     } else {
       double res;
-      if (fs.token.type == TT_NumberFloat) {
-        if (sc.token.type == TT_NumberFloat) {
+      if (fsrv.ret_type == RT_Float) {
+        if (scrv.ret_type == RT_Float) {
           res = powf(fsrv.opt_num.some.float_val, scrv.opt_num.some.float_val);
         } else {
           res = powf(fsrv.opt_num.some.float_val, scrv.opt_num.some.int_val);
@@ -296,9 +295,12 @@ OptionNumber calc_1_arg(RPNToken op, RPNToken token, RetType *ret_type,
   default:
     goto fail;
   }
-  if (token.token.type == TT_NumberFloat) {
+
+  RetValue tokenrv = retvalue_from_rpntoken(token, map);
+
+  if (tokenrv.ret_type == RT_Float) {
     *ret_type = RT_Float;
-    double ret_num = multiplier * token.token.data.float_val;
+    double ret_num = multiplier * tokenrv.opt_num.some.float_val;
     OptionNumber ret = {
         .some =
             (DataValue){
@@ -306,9 +308,9 @@ OptionNumber calc_1_arg(RPNToken op, RPNToken token, RetType *ret_type,
             },
     };
     return ret;
-  } else if (token.token.type == TT_NumberInt) {
+  } else if (tokenrv.ret_type == RT_Int) {
     *ret_type = RT_Int;
-    long ret_num = multiplier * token.token.data.int_val;
+    long ret_num = multiplier * tokenrv.opt_num.some.int_val;
     OptionNumber ret = {
         .some =
             (DataValue){
@@ -316,17 +318,6 @@ OptionNumber calc_1_arg(RPNToken op, RPNToken token, RetType *ret_type,
             },
     };
     return ret;
-  } else if (token.token.type == TT_Ident) {
-    RetValue rv = shget(map, token.token.data.str_val);
-    *ret_type = rv.ret_type;
-    if (*ret_type == RT_Int) {
-      rv.opt_num.some.int_val *= multiplier;
-    } else if (*ret_type == RT_Float) {
-      rv.opt_num.some.float_val *= multiplier;
-    } else {
-      goto fail;
-    }
-    return rv.opt_num;
   }
 fail:
   *ret_type = RT_Error;

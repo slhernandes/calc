@@ -6,6 +6,9 @@
 #include <readline/history.h>
 #include <readline/readline.h>
 
+#define STB_DS_IMPLEMENTATION
+#include "stb_ds.h"
+
 #define MAX_BUF_LEN 100
 
 int main() {
@@ -42,12 +45,31 @@ int main() {
 
 #ifdef DEBUG
     print_ra(&compressed);
-    printf("--------------------\n");
+    printf("-------------------------\n");
     print_ra(&rpn);
-    printf("--------------------\n");
+    printf("-------------------------\n");
 #endif
 
     RetValue res = eval(&rpn, &map);
+
+#ifdef DEBUG
+    printf("Assigned variables: \n");
+    for (int i = 0; i < shlen(map); i++) {
+      printf("{ident: %s, ", map[i].key);
+      switch (map[i].value.ret_type) {
+      case RT_Int: {
+        printf("value: %ld}\n", map[i].value.opt_num.some.int_val);
+      } break;
+      case RT_Float: {
+        printf("value: %lf}\n", map[i].value.opt_num.some.float_val);
+      } break;
+      default:
+        printf("value: undefined}\n");
+      }
+    }
+    printf("-------------------------\n");
+#endif
+
     print_rv(res);
   }
   clear_history();

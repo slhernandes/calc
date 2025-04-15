@@ -8,9 +8,14 @@
 #include "parser.h"
 #include <math.h>
 
+typedef enum {
+  ET_InvalidSyntax,
+  ET_DivisionByZero,
+} ErrorType;
+
 typedef union {
-  DataValue some;
-  bool none;
+  DataValue dv;
+  ErrorType et;
 } OptionNumber;
 
 typedef enum {

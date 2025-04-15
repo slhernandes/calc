@@ -58,10 +58,10 @@ int main() {
       printf("{ident: %s, ", map[i].key);
       switch (map[i].value.ret_type) {
       case RT_Int: {
-        printf("value: %ld}\n", map[i].value.opt_num.some.int_val);
+        printf("value: %ld}\n", map[i].value.opt_num.dv.int_val);
       } break;
       case RT_Float: {
-        printf("value: %lf}\n", map[i].value.opt_num.some.float_val);
+        printf("value: %lf}\n", map[i].value.opt_num.dv.float_val);
       } break;
       default:
         printf("value: undefined}\n");

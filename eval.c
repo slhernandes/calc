@@ -24,11 +24,11 @@ RetValue retvalue_from_rpntoken(RPNToken tkn, MapStrRV *map) {
   switch (tkn.token.type) {
   case TT_NumberFloat: {
     ret.ret_type = RT_Float;
-    ret.opt_num = (OptionNumber){.some = tkn.token.data};
+    ret.opt_num = (OptionNumber){.dv = tkn.token.data};
   } break;
   case TT_NumberInt: {
     ret.ret_type = RT_Int;
-    ret.opt_num = (OptionNumber){.some = tkn.token.data};
+    ret.opt_num = (OptionNumber){.dv = tkn.token.data};
   } break;
   case TT_Ident: {
     ret = shget(map, tkn.token.data.str_val);
@@ -38,7 +38,7 @@ RetValue retvalue_from_rpntoken(RPNToken tkn, MapStrRV *map) {
   }
   return ret;
 fail:
-  ret.opt_num = (OptionNumber){.none = true};
+  ret.opt_num = (OptionNumber){.et = ET_InvalidSyntax};
   ret.ret_type = RT_Error;
   return ret;
 }
@@ -60,54 +60,54 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
   switch (op.token.type) {
   case TT_Add: {
     if (rt == RT_Int) {
-      long res = fsrv.opt_num.some.int_val + scrv.opt_num.some.int_val;
+      long res = fsrv.opt_num.dv.int_val + scrv.opt_num.dv.int_val;
       DataValue res_num = {
           .int_val = res,
       };
       *ret_type = RT_Int;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     } else {
       double res;
       if (fsrv.ret_type == RT_Float) {
         if (scrv.ret_type == RT_Float) {
-          res = fsrv.opt_num.some.float_val + scrv.opt_num.some.float_val;
+          res = fsrv.opt_num.dv.float_val + scrv.opt_num.dv.float_val;
         } else {
-          res = fsrv.opt_num.some.float_val + scrv.opt_num.some.int_val;
+          res = fsrv.opt_num.dv.float_val + scrv.opt_num.dv.int_val;
         }
       } else {
-        res = fsrv.opt_num.some.int_val + scrv.opt_num.some.float_val;
+        res = fsrv.opt_num.dv.int_val + scrv.opt_num.dv.float_val;
       }
       DataValue res_num = {
           .float_val = res,
       };
       *ret_type = RT_Float;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     }
   } break;
   case TT_Sub: {
     if (rt == RT_Int) {
-      long res = fsrv.opt_num.some.int_val - scrv.opt_num.some.int_val;
+      long res = fsrv.opt_num.dv.int_val - scrv.opt_num.dv.int_val;
       DataValue res_num = {
           .int_val = res,
       };
       *ret_type = RT_Int;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     } else {
       double res;
       if (fsrv.ret_type == RT_Float) {
         if (scrv.ret_type == RT_Float) {
-          res = fsrv.opt_num.some.float_val - scrv.opt_num.some.float_val;
+          res = fsrv.opt_num.dv.float_val - scrv.opt_num.dv.float_val;
         } else {
-          res = fsrv.opt_num.some.float_val - scrv.opt_num.some.int_val;
+          res = fsrv.opt_num.dv.float_val - scrv.opt_num.dv.int_val;
         }
       } else {
-        res = fsrv.opt_num.some.int_val - scrv.opt_num.some.float_val;
+        res = fsrv.opt_num.dv.int_val - scrv.opt_num.dv.float_val;
       }
       DataValue res_num = {
           .float_val = res,
       };
       *ret_type = RT_Float;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     }
   } break;
   case TT_Div: {
@@ -115,169 +115,167 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
     double res;
     if (fsrv.ret_type == RT_Float) {
       if (scrv.ret_type == RT_Float) {
-        if (scrv.opt_num.some.float_val == 0.0) {
-          goto fail;
+        if (scrv.opt_num.dv.float_val == 0.0) {
+          goto fail_zero;
         }
-        res = fsrv.opt_num.some.float_val / scrv.opt_num.some.float_val;
+        res = fsrv.opt_num.dv.float_val / scrv.opt_num.dv.float_val;
       } else {
-        if (scrv.opt_num.some.int_val == 0) {
-          goto fail;
+        if (scrv.opt_num.dv.int_val == 0) {
+          goto fail_zero;
         }
-        res = fsrv.opt_num.some.float_val / (double)scrv.opt_num.some.int_val;
+        res = fsrv.opt_num.dv.float_val / (double)scrv.opt_num.dv.int_val;
       }
     } else {
       if (scrv.ret_type == RT_Float) {
-        if (scrv.opt_num.some.float_val == 0.0) {
-          goto fail;
+        if (scrv.opt_num.dv.float_val == 0.0) {
+          goto fail_zero;
         }
-        res = (double)fsrv.opt_num.some.int_val / scrv.opt_num.some.float_val;
+        res = (double)fsrv.opt_num.dv.int_val / scrv.opt_num.dv.float_val;
       } else {
-        if (scrv.opt_num.some.int_val == 0.0) {
-          goto fail;
+        if (scrv.opt_num.dv.int_val == 0.0) {
+          goto fail_zero;
         }
-        res = (double)fsrv.opt_num.some.int_val /
-              (double)scrv.opt_num.some.int_val;
+        res = (double)fsrv.opt_num.dv.int_val / (double)scrv.opt_num.dv.int_val;
       }
     }
     DataValue res_num = {
         .float_val = res,
     };
     *ret_type = RT_Float;
-    return (OptionNumber){.some = res_num};
+    return (OptionNumber){.dv = res_num};
   } break;
   case TT_IntDiv: {
     // rt = RT_Int;
     long res;
     if (fsrv.ret_type == RT_Float) {
       if (scrv.ret_type == RT_Float) {
-        if (scrv.opt_num.some.float_val == 0.0) {
-          goto fail;
+        if (scrv.opt_num.dv.float_val == 0.0) {
+          goto fail_zero;
         }
-        res = (long)(fsrv.opt_num.some.float_val / scrv.opt_num.some.float_val);
+        res = (long)(fsrv.opt_num.dv.float_val / scrv.opt_num.dv.float_val);
       } else {
-        if (scrv.opt_num.some.int_val == 0) {
-          goto fail;
+        if (scrv.opt_num.dv.int_val == 0) {
+          goto fail_zero;
         }
-        res = (long)(fsrv.opt_num.some.float_val / scrv.opt_num.some.int_val);
+        res = (long)(fsrv.opt_num.dv.float_val / scrv.opt_num.dv.int_val);
       }
     } else {
       if (scrv.ret_type == RT_Float) {
-        if (scrv.opt_num.some.float_val == 0.0) {
-          goto fail;
+        if (scrv.opt_num.dv.float_val == 0.0) {
+          goto fail_zero;
         }
-        res = (long)(fsrv.opt_num.some.int_val / scrv.opt_num.some.float_val);
+        res = (long)(fsrv.opt_num.dv.int_val / scrv.opt_num.dv.float_val);
       } else {
-        if (scrv.opt_num.some.int_val == 0.0) {
-          goto fail;
+        if (scrv.opt_num.dv.int_val == 0.0) {
+          goto fail_zero;
         }
-        res = fsrv.opt_num.some.int_val / scrv.opt_num.some.int_val;
+        res = fsrv.opt_num.dv.int_val / scrv.opt_num.dv.int_val;
       }
     }
     DataValue res_num = {
         .int_val = res,
     };
     *ret_type = RT_Int;
-    return (OptionNumber){.some = res_num};
+    return (OptionNumber){.dv = res_num};
   } break;
   case TT_Mult: {
     if (rt == RT_Int) {
-      long res = fsrv.opt_num.some.int_val * scrv.opt_num.some.int_val;
+      long res = fsrv.opt_num.dv.int_val * scrv.opt_num.dv.int_val;
       DataValue res_num = {
           .int_val = res,
       };
       *ret_type = RT_Int;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     } else {
       double res;
       if (fsrv.ret_type == RT_Float) {
         if (scrv.ret_type == RT_Float) {
-          res = fsrv.opt_num.some.float_val * scrv.opt_num.some.float_val;
+          res = fsrv.opt_num.dv.float_val * scrv.opt_num.dv.float_val;
         } else {
-          res = fsrv.opt_num.some.float_val * scrv.opt_num.some.int_val;
+          res = fsrv.opt_num.dv.float_val * scrv.opt_num.dv.int_val;
         }
       } else {
-        res = fsrv.opt_num.some.int_val * scrv.opt_num.some.float_val;
+        res = fsrv.opt_num.dv.int_val * scrv.opt_num.dv.float_val;
       }
       DataValue res_num = {
           .float_val = res,
       };
       *ret_type = RT_Float;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     }
   } break;
   case TT_Mod: {
     if (rt == RT_Int) {
-      if (scrv.opt_num.some.int_val == 0)
-        goto fail;
-      long res = fsrv.opt_num.some.int_val % scrv.opt_num.some.int_val;
+      if (scrv.opt_num.dv.int_val == 0)
+        goto fail_zero;
+      long res = fsrv.opt_num.dv.int_val % scrv.opt_num.dv.int_val;
       DataValue res_num = {
           .int_val = res,
       };
       *ret_type = RT_Int;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     } else {
       double res;
       if (fsrv.ret_type == RT_Float) {
         if (scrv.ret_type == RT_Float) {
-          if (scrv.opt_num.some.float_val == 0)
-            goto fail;
-          res = remainder(fsrv.opt_num.some.float_val,
-                          scrv.opt_num.some.float_val);
+          if (scrv.opt_num.dv.float_val == 0)
+            goto fail_zero;
+          res = remainder(fsrv.opt_num.dv.float_val, scrv.opt_num.dv.float_val);
         } else {
-          if (scrv.opt_num.some.int_val == 0)
-            goto fail;
-          res = remainder(fsrv.opt_num.some.float_val,
-                          (double)scrv.opt_num.some.int_val);
+          if (scrv.opt_num.dv.int_val == 0)
+            goto fail_zero;
+          res = remainder(fsrv.opt_num.dv.float_val,
+                          (double)scrv.opt_num.dv.int_val);
         }
       } else {
-        if (scrv.opt_num.some.float_val == 0)
-          goto fail;
-        res = remainder((double)fsrv.opt_num.some.int_val,
-                        scrv.opt_num.some.float_val);
+        if (scrv.opt_num.dv.float_val == 0)
+          goto fail_zero;
+        res = remainder((double)fsrv.opt_num.dv.int_val,
+                        scrv.opt_num.dv.float_val);
       }
       while (res < 0) {
-        res += scrv.opt_num.some.float_val;
+        res += scrv.opt_num.dv.float_val;
       }
       DataValue res_num = {
           .float_val = res,
       };
       *ret_type = RT_Float;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     }
   } break;
   case TT_Exp: {
     if (rt == RT_Int) {
-      if (scrv.opt_num.some.int_val >= 0) {
-        long res = powll(fsrv.opt_num.some.int_val, scrv.opt_num.some.int_val);
+      if (scrv.opt_num.dv.int_val >= 0) {
+        long res = powll(fsrv.opt_num.dv.int_val, scrv.opt_num.dv.int_val);
         DataValue res_num = {
             .int_val = res,
         };
         *ret_type = RT_Int;
-        return (OptionNumber){.some = res_num};
+        return (OptionNumber){.dv = res_num};
       } else {
-        double res = powf(fsrv.opt_num.some.int_val, scrv.opt_num.some.int_val);
+        double res = powf(fsrv.opt_num.dv.int_val, scrv.opt_num.dv.int_val);
         DataValue res_num = {
             .float_val = res,
         };
         *ret_type = RT_Float;
-        return (OptionNumber){.some = res_num};
+        return (OptionNumber){.dv = res_num};
       }
     } else {
       double res;
       if (fsrv.ret_type == RT_Float) {
         if (scrv.ret_type == RT_Float) {
-          res = powf(fsrv.opt_num.some.float_val, scrv.opt_num.some.float_val);
+          res = powf(fsrv.opt_num.dv.float_val, scrv.opt_num.dv.float_val);
         } else {
-          res = powf(fsrv.opt_num.some.float_val, scrv.opt_num.some.int_val);
+          res = powf(fsrv.opt_num.dv.float_val, scrv.opt_num.dv.int_val);
         }
       } else {
-        res = powf(fsrv.opt_num.some.int_val, scrv.opt_num.some.float_val);
+        res = powf(fsrv.opt_num.dv.int_val, scrv.opt_num.dv.float_val);
       }
       DataValue res_num = {
           .float_val = res,
       };
       *ret_type = RT_Float;
-      return (OptionNumber){.some = res_num};
+      return (OptionNumber){.dv = res_num};
     }
   } break;
   default:
@@ -285,7 +283,10 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
   }
 fail:
   *ret_type = RT_Error;
-  return (OptionNumber){.none = true};
+  return (OptionNumber){.et = ET_InvalidSyntax};
+fail_zero:
+  *ret_type = RT_Error;
+  return (OptionNumber){.et = ET_DivisionByZero};
 }
 
 OptionNumber calc_1_arg(RPNToken op, RPNToken token, RetType *ret_type,
@@ -308,9 +309,9 @@ OptionNumber calc_1_arg(RPNToken op, RPNToken token, RetType *ret_type,
 
   if (tokenrv.ret_type == RT_Float) {
     *ret_type = RT_Float;
-    double ret_num = multiplier * tokenrv.opt_num.some.float_val;
+    double ret_num = multiplier * tokenrv.opt_num.dv.float_val;
     OptionNumber ret = {
-        .some =
+        .dv =
             (DataValue){
                 .float_val = ret_num,
             },
@@ -318,9 +319,9 @@ OptionNumber calc_1_arg(RPNToken op, RPNToken token, RetType *ret_type,
     return ret;
   } else if (tokenrv.ret_type == RT_Int) {
     *ret_type = RT_Int;
-    long ret_num = multiplier * tokenrv.opt_num.some.int_val;
+    long ret_num = multiplier * tokenrv.opt_num.dv.int_val;
     OptionNumber ret = {
-        .some =
+        .dv =
             (DataValue){
                 .int_val = ret_num,
             },
@@ -329,7 +330,7 @@ OptionNumber calc_1_arg(RPNToken op, RPNToken token, RetType *ret_type,
   }
 fail:
   *ret_type = RT_Error;
-  return (OptionNumber){.none = true};
+  return (OptionNumber){.et = ET_InvalidSyntax};
 }
 
 RetValue eval(const RPNArray *rpn, MapStrRV **map) {
@@ -342,14 +343,14 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
       if (rpn->items[i].token.type == TT_Assign) {
         // TT_Assign can only be on the bottom of the stack;
         if (i != rpn->count - 1 || num_stack.count < 2) {
-          OptionNumber ret = {.none = true};
+          OptionNumber ret = {.et = ET_InvalidSyntax};
           return (RetValue){.ret_type = RT_Error, .opt_num = ret};
         }
         RPNToken left = num_stack.items[num_stack.count - 2];
         RPNToken right = num_stack.items[num_stack.count - 1];
         num_stack.count -= 2;
         if (left.token.type != TT_Ident) {
-          OptionNumber ret = {.none = true};
+          OptionNumber ret = {.et = ET_InvalidSyntax};
           return (RetValue){.ret_type = RT_Error, .opt_num = ret};
         }
         if (right.token.type == TT_Ident) {
@@ -359,15 +360,15 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
         } else if (right.token.type == TT_NumberInt) {
           rt = RT_Int;
           temp = (OptionNumber){
-              .some = right.token.data,
+              .dv = right.token.data,
           };
         } else if (right.token.type == TT_NumberFloat) {
           rt = RT_Float;
           temp = (OptionNumber){
-              .some = right.token.data,
+              .dv = right.token.data,
           };
         } else {
-          OptionNumber ret = {.none = true};
+          OptionNumber ret = {.et = ET_InvalidSyntax};
           return (RetValue){.ret_type = RT_Error, .opt_num = ret};
         }
         RetValue to_assign = {.ret_type = rt, .opt_num = temp};
@@ -375,7 +376,7 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
       } else if (rpn->items[i].token.type == TT_SignNeg ||
                  rpn->items[i].token.type == TT_SignPos) {
         if (num_stack.count < 1) {
-          OptionNumber ret = {.none = true};
+          OptionNumber ret = {.et = ET_InvalidSyntax};
           return (RetValue){.ret_type = RT_Error, .opt_num = ret};
         }
         RPNToken num_tok = num_stack.items[num_stack.count - 1];
@@ -383,7 +384,7 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
         temp = calc_1_arg(rpn->items[i], num_tok, &rt, *map);
       } else {
         if (num_stack.count < 2) {
-          OptionNumber ret = {.none = true};
+          OptionNumber ret = {.et = ET_InvalidSyntax};
           return (RetValue){.ret_type = RT_Error, .opt_num = ret};
         }
         RPNToken left = num_stack.items[num_stack.count - 2];
@@ -393,12 +394,11 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
       }
       Data temp_data;
       if (rt == RT_Int) {
-        temp_data = (Data){.type = TT_NumberInt, .data = temp.some};
+        temp_data = (Data){.type = TT_NumberInt, .data = temp.dv};
       } else if (rt == RT_Float) {
-        temp_data = (Data){.type = TT_NumberFloat, .data = temp.some};
+        temp_data = (Data){.type = TT_NumberFloat, .data = temp.dv};
       } else {
-        OptionNumber ret = {.none = true};
-        return (RetValue){.ret_type = RT_Error, .opt_num = ret};
+        return (RetValue){.ret_type = RT_Error, .opt_num = temp};
       }
       RPNToken ret = {
           .token = temp_data,
@@ -420,21 +420,30 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
       UNREACHABLE("Unreachable!");
     return retvalue_from_rpntoken(num_stack.items[0], *map);
   } else {
-    OptionNumber ret = {.none = true};
+    OptionNumber ret = {.et = ET_InvalidSyntax};
     return (RetValue){.ret_type = RT_Error, .opt_num = ret};
   }
   UNREACHABLE("Unreachable!");
-  OptionNumber ret = {.none = true};
+  OptionNumber ret = {.et = ET_InvalidSyntax};
   return (RetValue){.ret_type = RT_Error, .opt_num = ret};
 }
 
 void print_rv(RetValue rv) {
   if (rv.ret_type == RT_Error) {
-    printf("[\033[1;31mERROR\033[0m] Invalid Syntax\n");
+    switch (rv.opt_num.et) {
+    case ET_InvalidSyntax: {
+      printf("[\033[1;31mERROR\033[0m] Invalid Syntax\n");
+    } break;
+    case ET_DivisionByZero: {
+      printf("[\033[1;31mERROR\033[0m] Division/Modulo by zero\n");
+    } break;
+    default:
+      UNREACHABLE("Unknown Error");
+    }
   } else if (rv.ret_type == RT_Float) {
-    printf("[\033[1;32mRESULT\033[0m]: %f\n", rv.opt_num.some.float_val);
+    printf("[\033[1;32mRESULT\033[0m]: %f\n", rv.opt_num.dv.float_val);
   } else if (rv.ret_type == RT_Int) {
-    printf("[\033[1;32mRESULT\033[0m]: %ld\n", rv.opt_num.some.int_val);
+    printf("[\033[1;32mRESULT\033[0m]: %ld\n", rv.opt_num.dv.int_val);
   } else {
     UNREACHABLE("Invalid RetType");
   }

@@ -2,7 +2,7 @@
 #define NOB_STRIP_PREFIX
 #include "nob.h"
 
-// #define DEBUG
+#define DEBUG 0
 #define MAX_BUF_LEN 100
 #define path_from_home(path) temp_sprintf("%s/" path, getenv("HOME"))
 
@@ -85,11 +85,12 @@ int main(int argc, char **argv) {
     da_append(&in_paths, temp_sprintf("%s.c", files.items[i]));
     if (strcmp(files.items[i], "main"))
       da_append(&in_paths, temp_sprintf("%s.h", files.items[i]));
+    da_append(&in_paths, "nob.c");
     if (needs_rebuild(out_path, in_paths.items, in_paths.count) || force) {
-      cmd_append(&cmd, "gcc", "-Wall", "-Wpedantic", "-Wextra", "-c", "-g",
-                 "-o", out_path, in_paths.items[0]);
-#ifdef DEBUG
-      cmd_append(&cmd, "-DDEBUG");
+      cmd_append(&cmd, "gcc", "-Wall", "-Wextra", "-Werror", "-c", "-o",
+                 out_path, in_paths.items[0]);
+#if DEBUG
+      cmd_append(&cmd, "-DDEBUG", "-ggdb");
 #endif
       if (!cmd_run_sync_and_reset(&cmd))
         goto fail;
@@ -100,6 +101,7 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < files.count; i++) {
     da_append(&in_paths, temp_sprintf("./build/%s.o", files.items[i]));
   }
+  da_append(&in_paths, "nob.c");
   if (needs_rebuild(out_path, in_paths.items, files.count) || force) {
     cmd_append(&cmd, "gcc", "-o", out_path, "-lm", "-lreadline");
     for (size_t i = 0; i < files.count; i++) {

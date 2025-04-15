@@ -207,6 +207,8 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
   } break;
   case TT_Mod: {
     if (rt == RT_Int) {
+      if (scrv.opt_num.some.int_val == 0)
+        goto fail;
       long res = fsrv.opt_num.some.int_val % scrv.opt_num.some.int_val;
       DataValue res_num = {
           .int_val = res,
@@ -217,13 +219,19 @@ OptionNumber calc_2_args(RPNToken op, RPNToken fs, RPNToken sc,
       double res;
       if (fsrv.ret_type == RT_Float) {
         if (scrv.ret_type == RT_Float) {
+          if (scrv.opt_num.some.float_val == 0)
+            goto fail;
           res = remainder(fsrv.opt_num.some.float_val,
                           scrv.opt_num.some.float_val);
         } else {
+          if (scrv.opt_num.some.int_val == 0)
+            goto fail;
           res = remainder(fsrv.opt_num.some.float_val,
                           (double)scrv.opt_num.some.int_val);
         }
       } else {
+        if (scrv.opt_num.some.float_val == 0)
+          goto fail;
         res = remainder((double)fsrv.opt_num.some.int_val,
                         scrv.opt_num.some.float_val);
       }

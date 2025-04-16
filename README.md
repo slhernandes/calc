@@ -8,11 +8,42 @@ A simple CLI calculator app in C.
 
 ## Build
 
+## NixOS
+```nix
+# flake.nix
+{
+    description = "Example flake.nix";
+    inputs = {
+        nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+        calc.url = "github:slhernandes/calc";
+    };
+    outputs = {self, nixpkgs, ...}@inputs: {
+        nixosConfigurations = {
+            example = nixpkgs.lib.nixosSystem {
+            specialArgs = { inherit inputs; };
+            modules = [
+                ./hosts/example/configuration.nix
+            ];
+        };
+    };
+}
+```
+Then, in your ```configuration.nix```:
+```nix
+    environment.systemPackages = [
+        inputs.calc.packages.${pkgs.system}.default
+    ];
+```
+
+
+
+## Other linux and MacOS
+
 ```sh
 git clone https://github.com/slhernandes/calc
 cd calc
 gcc -o nob nob.c
-./nob && ./nob install
+./nob && ./nob install # By default installs to ~/.local/bin
 ```
 
 ## Dependencies

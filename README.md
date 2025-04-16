@@ -8,9 +8,9 @@ A simple CLI calculator app in C.
 
 ## Build
 
-## NixOS
+### NixOS
+Example Nix flake:
 ```nix
-# flake.nix
 {
     description = "Example flake.nix";
     inputs = {
@@ -37,7 +37,7 @@ Then, in your ```configuration.nix```:
 
 
 
-## Other linux and MacOS
+### Other linux and MacOS
 
 ```sh
 git clone https://github.com/slhernandes/calc

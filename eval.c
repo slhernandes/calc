@@ -448,21 +448,18 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
                     .pos = num_stack.items[0].token.pos};
 }
 
-void print_rv(RetValue rv, char *expr) {
+void print_rv(RetValue rv) {
   if (rv.ret_type == RT_Error) {
     char *marker = "^";
-    int offset = 8;
+    int offset = 7;
     switch (rv.opt_num.et) {
     case ET_InvalidSyntax: {
-      printf("[\033[1;31mERROR\033[0m] Invalid Syntax\nExpr: %*s\n%*s\n",
-             offset + (int)strlen(expr) - 6, expr, offset + (int)rv.pos + 1,
-             marker);
+      printf("%*s\n[\033[1;31mERROR\033[0m] Invalid Syntax\n",
+             offset + (int)rv.pos, marker);
     } break;
     case ET_DivisionByZero: {
-      printf(
-          "[\033[1;31mERROR\033[0m] Division/Modulo by zero\nExpr: %*s\n%*s\n",
-          offset + (int)strlen(expr) - 6, expr, offset + (int)rv.pos + 1,
-          marker);
+      printf("%*s\n[\033[1;31mERROR\033[0m] Division/Modulo by zero\n",
+             offset + (int)rv.pos, marker);
     } break;
     default:
       UNREACHABLE("Unknown Error");

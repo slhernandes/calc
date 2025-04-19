@@ -36,6 +36,6 @@ typedef struct {
 } MapStrRV;
 
 RetValue eval(const RPNArray *rpn, MapStrRV **map);
-void print_rv(RetValue rv, char *expr);
+void print_rv(RetValue rv);
 
 #endif // EVAL_H

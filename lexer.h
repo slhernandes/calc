@@ -32,6 +32,7 @@ typedef union {
 typedef struct {
   TokenType type;
   DataValue data;
+  size_t pos;
 } Data;
 
 typedef struct {

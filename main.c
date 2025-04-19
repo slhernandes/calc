@@ -70,7 +70,7 @@ int main() {
     printf("-------------------------\n");
 #endif
 
-    print_rv(res);
+    print_rv(res, input);
   }
   clear_history();
   free(input);

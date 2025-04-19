@@ -48,6 +48,7 @@ done:
     ret = str_size;
   data->type = TT_NumberInt;
   data->data.int_val = strtoul(cpy, (char **)0, base);
+  free(cpy);
   return ret;
 }
 
@@ -126,9 +127,10 @@ bool next_is_sign(Data token) {
   UNREACHABLE("Unreachable!");
 }
 
-void _tokenize_helper(char *str_in, DataArray *tokens) {
+void _tokenize_helper(char *str_in, DataArray *tokens, size_t pos) {
   size_t offset = skip_whitespaces(str_in);
   str_in += offset;
+  pos += offset;
   size_t str_size = strlen(str_in);
   if (str_size == 0)
     return;
@@ -137,6 +139,7 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     Data cur = {
         .type = TT_LeftParen,
         .data = {0},
+        .pos = pos,
     };
     da_append(tokens, cur);
   } break;
@@ -144,6 +147,7 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     Data cur = {
         .type = TT_RightParen,
         .data = {0},
+        .pos = pos,
     };
     da_append(tokens, cur);
   } break;
@@ -153,11 +157,13 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
       cur = (Data){
           .type = TT_SignPos,
           .data = {0},
+          .pos = pos,
       };
     } else {
       cur = (Data){
           .type = TT_Add,
           .data = {0},
+          .pos = pos,
       };
     }
     da_append(tokens, cur);
@@ -168,11 +174,13 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
       cur = (Data){
           .type = TT_SignNeg,
           .data = {0},
+          .pos = pos,
       };
     } else {
       cur = (Data){
           .type = TT_Sub,
           .data = {0},
+          .pos = pos,
       };
     }
     da_append(tokens, cur);
@@ -182,10 +190,12 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     if (str_size > 1 && str_in[1] == '/') {
       t_type = TT_IntDiv;
       str_in++;
+      pos++;
     }
     Data cur = {
         .type = t_type,
         .data = {0},
+        .pos = pos,
     };
     da_append(tokens, cur);
   } break;
@@ -193,6 +203,7 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     Data cur = {
         .type = TT_Mult,
         .data = {0},
+        .pos = pos,
     };
     da_append(tokens, cur);
   } break;
@@ -200,6 +211,7 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     Data cur = {
         .type = TT_Exp,
         .data = {0},
+        .pos = pos,
     };
     da_append(tokens, cur);
   } break;
@@ -207,6 +219,7 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     Data cur = {
         .type = TT_Mod,
         .data = {0},
+        .pos = pos,
     };
     da_append(tokens, cur);
   } break;
@@ -220,9 +233,12 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
         offset = read_hexbin(str_in, &cur, 16);
       else {
         str_in += 2;
+        pos += 2;
         offset = read_hexbin(str_in, &cur, 2);
       }
       str_in += offset;
+      pos += offset;
+      cur.pos = pos;
       da_append(tokens, cur);
     }
     if (is_hexbin)
@@ -234,6 +250,8 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     Data cur = {0};
     size_t offset = read_num(str_in, &cur);
     str_in += offset;
+    pos += offset;
+    cur.pos = pos;
     da_append(tokens, cur);
     break;
   }
@@ -243,12 +261,15 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     Data cur = {0};
     size_t offset = read_ident(str_in, &cur);
     str_in += offset;
+    pos += offset;
+    cur.pos = pos;
     da_append(tokens, cur);
   } break;
   case '=': {
     Data cur = {
         .type = TT_Assign,
         .data = {0},
+        .pos = pos,
     };
     da_append(tokens, cur);
   } break;
@@ -256,17 +277,18 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     Data cur = {
         .type = TT_Illegal,
         .data = {0},
+        .pos = pos,
     };
     da_append(tokens, cur);
   }
   }
   if (strlen(str_in) > 1)
-    _tokenize_helper(++str_in, tokens);
+    _tokenize_helper(++str_in, tokens, pos + 1);
 }
 
 void tokenize(char *str_in, DataArray *tokens) {
   char *now = strdup(str_in);
-  _tokenize_helper(now, tokens);
+  _tokenize_helper(now, tokens, 0);
   free(now);
 }
 

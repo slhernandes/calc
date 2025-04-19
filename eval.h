@@ -27,6 +27,7 @@ typedef enum {
 typedef struct {
   OptionNumber opt_num;
   RetType ret_type;
+  size_t pos;
 } RetValue;
 
 typedef struct {
@@ -35,6 +36,6 @@ typedef struct {
 } MapStrRV;
 
 RetValue eval(const RPNArray *rpn, MapStrRV **map);
-void print_rv(RetValue rv);
+void print_rv(RetValue rv, char *expr);
 
 #endif // EVAL_H

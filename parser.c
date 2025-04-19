@@ -95,11 +95,13 @@ RPNArray compress_add_sub(DataArray *data) {
           temp_data = (Data){
               .type = TT_SignNeg,
               .data = {0},
+              .pos = data->items[i].pos,
           };
         } else {
           temp_data = (Data){
               .type = TT_SignPos,
               .data = {0},
+              .pos = data->items[i].pos,
           };
         }
 

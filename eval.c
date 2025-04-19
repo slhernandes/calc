@@ -25,10 +25,12 @@ RetValue retvalue_from_rpntoken(RPNToken tkn, MapStrRV *map) {
   case TT_NumberFloat: {
     ret.ret_type = RT_Float;
     ret.opt_num = (OptionNumber){.dv = tkn.token.data};
+    ret.pos = tkn.token.pos;
   } break;
   case TT_NumberInt: {
     ret.ret_type = RT_Int;
     ret.opt_num = (OptionNumber){.dv = tkn.token.data};
+    ret.pos = tkn.token.pos;
   } break;
   case TT_Ident: {
     ret = shget(map, tkn.token.data.str_val);
@@ -40,6 +42,7 @@ RetValue retvalue_from_rpntoken(RPNToken tkn, MapStrRV *map) {
 fail:
   ret.opt_num = (OptionNumber){.et = ET_InvalidSyntax};
   ret.ret_type = RT_Error;
+  ret.pos = tkn.token.pos;
   return ret;
 }
 
@@ -351,7 +354,8 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
         num_stack.count -= 2;
         if (left.token.type != TT_Ident) {
           OptionNumber ret = {.et = ET_InvalidSyntax};
-          return (RetValue){.ret_type = RT_Error, .opt_num = ret};
+          return (RetValue){
+              .ret_type = RT_Error, .opt_num = ret, .pos = left.token.pos};
         }
         if (right.token.type == TT_Ident) {
           RetValue rv = shget(*map, right.token.data.str_val);
@@ -369,15 +373,19 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
           };
         } else {
           OptionNumber ret = {.et = ET_InvalidSyntax};
-          return (RetValue){.ret_type = RT_Error, .opt_num = ret};
+          return (RetValue){
+              .ret_type = RT_Error, .opt_num = ret, .pos = right.token.pos};
         }
-        RetValue to_assign = {.ret_type = rt, .opt_num = temp};
+        RetValue to_assign = {
+            .ret_type = rt, .opt_num = temp, .pos = left.token.pos};
         shput(*map, left.token.data.str_val, to_assign);
       } else if (rpn->items[i].token.type == TT_SignNeg ||
                  rpn->items[i].token.type == TT_SignPos) {
         if (num_stack.count < 1) {
           OptionNumber ret = {.et = ET_InvalidSyntax};
-          return (RetValue){.ret_type = RT_Error, .opt_num = ret};
+          return (RetValue){.ret_type = RT_Error,
+                            .opt_num = ret,
+                            .pos = rpn->items[i].token.pos + 1};
         }
         RPNToken num_tok = num_stack.items[num_stack.count - 1];
         num_stack.count--;
@@ -385,7 +393,9 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
       } else {
         if (num_stack.count < 2) {
           OptionNumber ret = {.et = ET_InvalidSyntax};
-          return (RetValue){.ret_type = RT_Error, .opt_num = ret};
+          return (RetValue){.ret_type = RT_Error,
+                            .opt_num = ret,
+                            .pos = rpn->items[i].token.pos};
         }
         RPNToken left = num_stack.items[num_stack.count - 2];
         RPNToken right = num_stack.items[num_stack.count - 1];
@@ -394,11 +404,17 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
       }
       Data temp_data;
       if (rt == RT_Int) {
-        temp_data = (Data){.type = TT_NumberInt, .data = temp.dv};
+        temp_data = (Data){.type = TT_NumberInt,
+                           .data = temp.dv,
+                           .pos = rpn->items[i].token.pos};
       } else if (rt == RT_Float) {
-        temp_data = (Data){.type = TT_NumberFloat, .data = temp.dv};
+        temp_data = (Data){.type = TT_NumberFloat,
+                           .data = temp.dv,
+                           .pos = rpn->items[i].token.pos};
       } else {
-        return (RetValue){.ret_type = RT_Error, .opt_num = temp};
+        return (RetValue){.ret_type = RT_Error,
+                          .opt_num = temp,
+                          .pos = rpn->items[i].token.pos};
       }
       RPNToken ret = {
           .token = temp_data,
@@ -421,21 +437,32 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
     return retvalue_from_rpntoken(num_stack.items[0], *map);
   } else {
     OptionNumber ret = {.et = ET_InvalidSyntax};
-    return (RetValue){.ret_type = RT_Error, .opt_num = ret};
+    return (RetValue){.ret_type = RT_Error,
+                      .opt_num = ret,
+                      .pos = num_stack.items[0].token.pos};
   }
   UNREACHABLE("Unreachable!");
   OptionNumber ret = {.et = ET_InvalidSyntax};
-  return (RetValue){.ret_type = RT_Error, .opt_num = ret};
+  return (RetValue){.ret_type = RT_Error,
+                    .opt_num = ret,
+                    .pos = num_stack.items[0].token.pos};
 }
 
-void print_rv(RetValue rv) {
+void print_rv(RetValue rv, char *expr) {
   if (rv.ret_type == RT_Error) {
+    char *marker = "^";
+    int offset = 8;
     switch (rv.opt_num.et) {
     case ET_InvalidSyntax: {
-      printf("[\033[1;31mERROR\033[0m] Invalid Syntax\n");
+      printf("[\033[1;31mERROR\033[0m] Invalid Syntax\nExpr: %*s\n%*s\n",
+             offset + (int)strlen(expr) - 6, expr, offset + (int)rv.pos + 1,
+             marker);
     } break;
     case ET_DivisionByZero: {
-      printf("[\033[1;31mERROR\033[0m] Division/Modulo by zero\n");
+      printf(
+          "[\033[1;31mERROR\033[0m] Division/Modulo by zero\nExpr: %*s\n%*s\n",
+          offset + (int)strlen(expr) - 6, expr, offset + (int)rv.pos + 1,
+          marker);
     } break;
     default:
       UNREACHABLE("Unknown Error");

@@ -17,9 +17,10 @@ size_t read_hexbin(char *str_in, Data *data, int base) {
   size_t str_size = strlen(cpy);
   size_t ret = 0;
   bool end = false;
-  for (size_t i = 0; i < str_size; i++) {
+  size_t i = base == 16 ? 2 : 0;
+  for (; i < str_size; i++) {
     if (base == 16) {
-      switch (cpy[0]) {
+      switch (cpy[i]) {
       case '0' ... '9':
       case 'a' ... 'f': {
       } break;
@@ -31,7 +32,7 @@ size_t read_hexbin(char *str_in, Data *data, int base) {
         UNREACHABLE("After goto");
       }
     } else {
-      switch (cpy[0]) {
+      switch (cpy[i]) {
       case '0' ... '1': {
       } break;
       default:
@@ -241,8 +242,9 @@ void _tokenize_helper(char *str_in, DataArray *tokens, size_t pos) {
       cur.pos = pos;
       da_append(tokens, cur);
     }
-    if (is_hexbin)
+    if (is_hexbin) {
       break;
+    }
     __attribute__((fallthrough));
   }
   case '1' ... '9':

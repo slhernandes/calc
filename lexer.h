@@ -41,6 +41,7 @@ typedef struct {
 } DataArray;
 
 size_t skip_whitespaces(char *str_in);
+size_t read_hexbin(char *str_in, Data *data, int base);
 size_t read_num(char *str_in, Data *data);
 size_t read_ident(char *str_in, Data *data);
 void tokenize(char *str_in, DataArray *tokens);

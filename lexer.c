@@ -12,6 +12,45 @@ size_t skip_whitespaces(char *str_in) {
   return offset;
 }
 
+size_t read_hexbin(char *str_in, Data *data, int base) {
+  char *cpy = strdup(str_in);
+  size_t str_size = strlen(cpy);
+  size_t ret = 0;
+  bool end = false;
+  for (size_t i = 0; i < str_size; i++) {
+    if (base == 16) {
+      switch (cpy[0]) {
+      case '0' ... '9':
+      case 'a' ... 'f': {
+      } break;
+      default:
+        ret = i - 1;
+        cpy[i] = '\0';
+        end = true;
+        goto done;
+        UNREACHABLE("After goto");
+      }
+    } else {
+      switch (cpy[0]) {
+      case '0' ... '1': {
+      } break;
+      default:
+        ret = i - 1;
+        cpy[i] = '\0';
+        end = true;
+        goto done;
+        UNREACHABLE("After goto");
+      }
+    }
+  }
+done:
+  if (!end)
+    ret = str_size;
+  data->type = TT_NumberInt;
+  data->data.int_val = strtoul(cpy, (char **)0, base);
+  return ret;
+}
+
 size_t read_num(char *str_in, Data *data) {
   char *cpy = strdup(str_in);
   size_t str_size = strlen(cpy);
@@ -171,7 +210,26 @@ void _tokenize_helper(char *str_in, DataArray *tokens) {
     };
     da_append(tokens, cur);
   } break;
-  case '0' ... '9':
+  case '0': {
+    Data cur = {0};
+    bool is_hexbin = false;
+    if (str_size > 2 && (str_in[1] == 'x' || str_in[1] == 'b')) {
+      is_hexbin = true;
+      size_t offset;
+      if (str_in[1] == 'x')
+        offset = read_hexbin(str_in, &cur, 16);
+      else {
+        str_in += 2;
+        offset = read_hexbin(str_in, &cur, 2);
+      }
+      str_in += offset;
+      da_append(tokens, cur);
+    }
+    if (is_hexbin)
+      break;
+    __attribute__((fallthrough));
+  }
+  case '1' ... '9':
   case '.': {
     Data cur = {0};
     size_t offset = read_num(str_in, &cur);

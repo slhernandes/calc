@@ -15,7 +15,7 @@ typedef struct {
 int main(int argc, char **argv) {
   NOB_GO_REBUILD_URSELF(argc, argv);
 
-  char subcmd[MAX_BUF_LEN];
+  char *program = shift_args(&argc, &argv);
   int force = 0;
 
   Cmd cmd = {0};
@@ -27,8 +27,9 @@ int main(int argc, char **argv) {
   da_append(&files, "eval");
   da_append(&files, "main");
 
-  if (argc > 1) {
-    if (!strcmp(argv[1], "clean")) {
+  if (argc > 0) {
+    char *subcmd = shift_args(&argc, &argv);
+    if (!strcmp(subcmd, "clean")) {
       for (size_t i = 0; i < files.count; i++) {
         if (!delete_file(temp_sprintf("./build/%s.o", files.items[i]))) {
           goto fail;
@@ -41,9 +42,9 @@ int main(int argc, char **argv) {
         goto fail;
       }
       goto success;
-    } else if (!strcmp(argv[1], "-f") || !strcmp(argv[1], "--force")) {
+    } else if (!strcmp(subcmd, "-f") || !strcmp(subcmd, "--force")) {
       force = 1;
-    } else if (!strcmp(argv[1], "install")) {
+    } else if (!strcmp(subcmd, "install")) {
       // just in case mkdir_if_not_exists doesn't work
       char *home = getenv("HOME");
       int res = file_exists(path_from_home(".local/bin"));

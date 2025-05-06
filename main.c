@@ -3,6 +3,7 @@
 #include "parser.h"
 #include <stdio.h>
 
+#include <getopt.h>
 #include <readline/history.h>
 #include <readline/readline.h>
 
@@ -11,29 +12,43 @@
 
 #define MAX_BUF_LEN 100
 
-int main() {
-  // Old input
-  // FILE *test = fopen("./test.in", "r");
-  // if (test == NULL) {
-  //   return -1;
-  // }
-  // String_Builder sb = {0};
-  // char buf[MAX_BUF_LEN];
-  // while (fgets(buf, MAX_BUF_LEN, test) != NULL) {
-  //   sb_append_cstr(&sb, buf);
-  // }
-  // sb_append_null(&sb);
+int main(int argc, char **argv) {
+  int flag = 0, opt;
+  while ((opt = getopt(argc, argv, "n")) != -1) {
+    switch (opt) {
+    case 'n':
+      flag = 1;
+      break;
+    default: /* '?' */
+      fprintf(stderr,
+              "Usage: %s [-n]\n\t-d: only output last result. (for piping from "
+              "other command)\n",
+              argv[0]);
+      exit(EXIT_FAILURE);
+    }
+  }
 
   char *input;
   DataArray tokens = {0};
   RPNArray compressed = {0}, rpn = {0};
+  RetValue res = {0};
   MapStrRV *map = NULL;
   using_history();
+  size_t size = 0;
+  ssize_t nread = 0;
 
   while (true) {
-    input = readline("calc> ");
-    if (input == NULL)
+    if (!flag) {
+      input = readline("calc> ");
+    } else {
+      nread = getline(&input, &size, stdin);
+    }
+    if (input == NULL || (flag && nread == -1) || strlen(input) <= 1) {
+      if (flag) {
+        print_rv(&res, flag);
+      }
       goto fail;
+    }
     if (!strcmp(input, "exit"))
       goto quit;
     add_history(input);
@@ -50,7 +65,7 @@ int main() {
     printf("-------------------------\n");
 #endif
 
-    RetValue res = eval(&rpn, &map);
+    res = eval(&rpn, &map);
 
 #ifdef DEBUG
     printf("Assigned variables: \n");
@@ -70,7 +85,9 @@ int main() {
     printf("-------------------------\n");
 #endif
 
-    print_rv(res);
+    if (!flag) {
+      print_rv(&res, flag);
+    }
   }
   clear_history();
   free(input);

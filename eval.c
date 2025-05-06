@@ -448,26 +448,42 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
                     .pos = num_stack.items[0].token.pos};
 }
 
-void print_rv(RetValue rv) {
-  if (rv.ret_type == RT_Error) {
+void print_rv(const RetValue *rv, int flag) {
+  if (rv->ret_type == RT_Error) {
     char *marker = "^";
     int offset = 7;
-    switch (rv.opt_num.et) {
+    switch (rv->opt_num.et) {
     case ET_InvalidSyntax: {
-      printf("%*s\n[\033[1;31mERROR\033[0m] Invalid Syntax\n",
-             offset + (int)rv.pos, marker);
+      if (!flag) {
+        printf("%*s\n[\033[1;31mERROR\033[0m] Invalid Syntax\n",
+               offset + (int)rv->pos, marker);
+      } else {
+        printf("Invalid Syntax\n");
+      }
     } break;
     case ET_DivisionByZero: {
-      printf("%*s\n[\033[1;31mERROR\033[0m] Division/Modulo by zero\n",
-             offset + (int)rv.pos, marker);
+      if (!flag) {
+        printf("%*s\n[\033[1;31mERROR\033[0m] Division/Modulo by zero\n",
+               offset + (int)rv->pos, marker);
+      } else {
+        printf("Division/Modulo by zero\n");
+      }
     } break;
     default:
       UNREACHABLE("Unknown Error");
     }
-  } else if (rv.ret_type == RT_Float) {
-    printf("[\033[1;32mRESULT\033[0m]: %f\n", rv.opt_num.dv.float_val);
-  } else if (rv.ret_type == RT_Int) {
-    printf("[\033[1;32mRESULT\033[0m]: %ld\n", rv.opt_num.dv.int_val);
+  } else if (rv->ret_type == RT_Float) {
+    if (!flag) {
+      printf("[\033[1;32mRESULT\033[0m]: %f\n", rv->opt_num.dv.float_val);
+    } else {
+      printf("%f\n", rv->opt_num.dv.float_val);
+    }
+  } else if (rv->ret_type == RT_Int) {
+    if (!flag) {
+      printf("[\033[1;32mRESULT\033[0m]: %ld\n", rv->opt_num.dv.int_val);
+    } else {
+      printf("%ld\n", rv->opt_num.dv.int_val);
+    }
   } else {
     UNREACHABLE("Invalid RetType");
   }

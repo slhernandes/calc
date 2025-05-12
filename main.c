@@ -14,16 +14,24 @@
 
 int main(int argc, char **argv) {
   int flag = 0, opt;
-  while ((opt = getopt(argc, argv, "n")) != -1) {
+  while ((opt = getopt(argc, argv, "nh")) != -1) {
     switch (opt) {
-    case 'n':
+    case 'n': {
       flag = 1;
-      break;
+    } break;
+    case 'h': {
+      printf(
+          "Usage: %s [-n|-h]\n\t-n: only output last result. (for piping from "
+          "other command)\n\t-h: show this message\n",
+          argv[0]);
+      exit(EXIT_SUCCESS);
+    } break;
     default: /* '?' */
-      fprintf(stderr,
-              "Usage: %s [-n]\n\t-d: only output last result. (for piping from "
-              "other command)\n",
-              argv[0]);
+      fprintf(
+          stderr,
+          "Usage: %s [-n|-h]\n\t-n: only output last result. (for piping from "
+          "other command)\n\t-h: show this message\n",
+          argv[0]);
       exit(EXIT_FAILURE);
     }
   }

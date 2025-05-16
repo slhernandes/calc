@@ -104,10 +104,11 @@ int main(int argc, char **argv) {
   }
   da_append(&in_paths, "nob.c");
   if (needs_rebuild(out_path, in_paths.items, files.count) || force) {
-    cmd_append(&cmd, "gcc", "-o", out_path, "-lm", "-lreadline");
+    cmd_append(&cmd, "gcc", "-o", out_path);
     for (size_t i = 0; i < files.count; i++) {
       cmd_append(&cmd, temp_sprintf("./build/%s.o", files.items[i]));
     }
+    cmd_append(&cmd, "-lm", "-lreadline");
     if (!cmd_run_sync_and_reset(&cmd))
       goto fail;
     nob_log(INFO, "Build Successful!");

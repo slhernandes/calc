@@ -39,7 +39,7 @@ void show_help(char *prog_name, FILE *f) {
           "\t0b  : prints previous result in binary (only if previous result "
           "is integer)\n\n"
           "Valid operators: "
-          "+, -, *, /, /, ^, %%, =, (, )\n",
+          "+, -, *, /, //, ^, %%, =, (, )\n",
           prog_name);
 }
 

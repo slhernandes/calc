@@ -12,6 +12,19 @@
 
 #define MAX_BUF_LEN 100
 
+char *trimwhitespace(char *str) {
+  char *end;
+  while (isspace((unsigned char)*str))
+    str++;
+  if (*str == 0)
+    return str;
+  end = str + strlen(str) - 1;
+  while (end > str && isspace((unsigned char)*end))
+    end--;
+  end[1] = '\0';
+  return str;
+}
+
 int main(int argc, char **argv) {
   int flag = 0, opt;
   while ((opt = getopt(argc, argv, "nh")) != -1) {
@@ -48,17 +61,66 @@ int main(int argc, char **argv) {
   while (true) {
     if (!flag) {
       input = readline("calc> ");
+      input = trimwhitespace(input);
     } else {
       nread = getline(&input, &size, stdin);
     }
-    if (input == NULL || (flag && nread == -1) || strlen(input) <= 1) {
+    if (input == NULL || (flag && nread == -1) || input[0] == '\n') {
       if (flag) {
         print_rv(&res, flag);
       }
       goto fail;
     }
-    if (!strcmp(input, "exit"))
+    if (strlen(input) == 0) {
+      continue;
+    }
+    if (!strcmp(input, "exit")) {
       goto quit;
+    } else if (!strcmp(input, "clear")) {
+      printf("\e[1;1H\e[2J");
+      continue;
+    } else if (!strcmp(input, "x")) {
+      switch (res.ret_type) {
+      case RT_Int:
+      case RT_Int_Bin:
+      case RT_Int_Hex: {
+        res.ret_type = RT_Int_Hex;
+        print_rv(&res, flag);
+      } break;
+      default:
+        OptionNumber temp_on = (OptionNumber){
+            .et = ET_InvalidSyntax,
+        };
+        RetValue temp_rv = {
+            .ret_type = RT_Error,
+            .opt_num = temp_on,
+            .pos = 0,
+        };
+        print_rv(&temp_rv, flag);
+      }
+      continue;
+    } else if (!strcmp(input, "b")) {
+      switch (res.ret_type) {
+      case RT_Int:
+      case RT_Int_Bin:
+      case RT_Int_Hex: {
+        res.ret_type = RT_Int_Bin;
+        print_rv(&res, flag);
+        continue;
+      } break;
+      default:
+        OptionNumber temp_on = {
+            .et = ET_InvalidSyntax,
+        };
+        RetValue temp_rv = {
+            .ret_type = RT_Error,
+            .opt_num = temp_on,
+            .pos = 0,
+        };
+        print_rv(&temp_rv, flag);
+        continue;
+      }
+    }
     add_history(input);
     tokens.count = 0;
     tokenize(input, &tokens);

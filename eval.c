@@ -449,7 +449,8 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
 }
 
 void print_rv(const RetValue *rv, int flag) {
-  if (rv->ret_type == RT_Error) {
+  switch (rv->ret_type) {
+  case RT_Error: {
     char *marker = "^";
     int offset = 7;
     switch (rv->opt_num.et) {
@@ -472,19 +473,36 @@ void print_rv(const RetValue *rv, int flag) {
     default:
       UNREACHABLE("Unknown Error");
     }
-  } else if (rv->ret_type == RT_Float) {
+  } break;
+  case RT_Float: {
     if (!flag) {
       printf("[\033[1;32mRESULT\033[0m]: %f\n", rv->opt_num.dv.float_val);
     } else {
       printf("%f\n", rv->opt_num.dv.float_val);
     }
-  } else if (rv->ret_type == RT_Int) {
+  } break;
+  case RT_Int: {
     if (!flag) {
       printf("[\033[1;32mRESULT\033[0m]: %ld\n", rv->opt_num.dv.int_val);
     } else {
       printf("%ld\n", rv->opt_num.dv.int_val);
     }
-  } else {
+  } break;
+  case RT_Int_Hex: {
+    if (!flag) {
+      printf("[\033[1;32mRESULT\033[0m]: 0x%lX\n", rv->opt_num.dv.int_val);
+    } else {
+      printf("0x%lX\n", rv->opt_num.dv.int_val);
+    }
+  } break;
+  case RT_Int_Bin: {
+    if (!flag) {
+      printf("[\033[1;32mRESULT\033[0m]: 0b%lb\n", rv->opt_num.dv.int_val);
+    } else {
+      printf("0b%lb\n", rv->opt_num.dv.int_val);
+    }
+  } break;
+  default:
     UNREACHABLE("Invalid RetType");
   }
 }

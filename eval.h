@@ -20,6 +20,8 @@ typedef union {
 
 typedef enum {
   RT_Int,
+  RT_Int_Hex,
+  RT_Int_Bin,
   RT_Float,
   RT_Error,
 } RetType;

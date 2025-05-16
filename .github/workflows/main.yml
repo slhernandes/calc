@@ -12,7 +12,7 @@ jobs:
     steps:
 
     - name: Install libreadline-dev
-      run: sudo apt update && sudo apt install -y libreadline-dev
+      run: sudo apt update && sudo apt install -y libreadline-dev build-essential
 
     - name: Checkout repository
       uses: actions/checkout@v4

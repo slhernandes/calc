@@ -75,7 +75,9 @@ calc> a = (150//(10+2^2) + 7) * (6 % 4)
 [RESULT]: 34
 calc> b = (1337 - 420)/26.2
 [RESULT]: 35.000000
-calc> (a + b) // 1
+calc> (a+b)//1
+[RESULT]: 69
+calc> c = prev
 [RESULT]: 69
 calc> 0x
 [RESULT]: 0x45
@@ -83,3 +85,5 @@ calc> 0b
 [RESULT]: 0b1000101
 calc> exit
 ```
+
+Notice that the variable `prev` is a reserved variable used to store the previous result.

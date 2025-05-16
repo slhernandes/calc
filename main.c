@@ -39,12 +39,13 @@ void show_help(char *prog_name, FILE *f) {
           "\t0b  : prints previous result in binary (only if previous result "
           "is integer)\n\n"
           "Valid operators: "
-          "+, -, *, /, //, ^, %%, =, (, )\n",
+          "+, -, *, /, //, ^, %%, =, (, )\n\n"
+          "Note: variable 'prev' is used to store previous result.\n",
           prog_name);
 }
 
 int main(int argc, char **argv) {
-  int flag = 0, opt;
+  int flag = 0, opt, retval = 0;
   while ((opt = getopt(argc, argv, "nh")) != -1) {
     switch (opt) {
     case 'n': {
@@ -72,7 +73,9 @@ int main(int argc, char **argv) {
   while (true) {
     if (!flag) {
       input = readline("calc> ");
-      input = trimwhitespace(input);
+      if (input) {
+        input = trimwhitespace(input);
+      }
     } else {
       nread = getline(&input, &size, stdin);
     }
@@ -80,12 +83,18 @@ int main(int argc, char **argv) {
       if (flag) {
         print_rv(&res, flag);
       }
-      goto fail;
+      if (res.ret_type != RT_Error) {
+        retval = 0;
+      } else {
+        retval = 1;
+      }
+      goto quit;
     }
     if (strlen(input) == 0) {
       continue;
     }
     if (!strcmp(input, "exit")) {
+      retval = 0;
       goto quit;
     } else if (!strcmp(input, "clear")) {
       printf("\e[1;1H\e[2J");
@@ -150,6 +159,7 @@ int main(int argc, char **argv) {
 #endif
 
     res = eval(&rpn, &map);
+    shput(map, "prev", res);
 
 #ifdef DEBUG
     printf("Assigned variables: \n");
@@ -173,24 +183,11 @@ int main(int argc, char **argv) {
       print_rv(&res, flag);
     }
   }
-  clear_history();
-  free(input);
-  da_free(tokens);
-  da_free(compressed);
-  da_free(rpn);
-  return 0;
 quit:
   clear_history();
   da_free(tokens);
   da_free(compressed);
   da_free(rpn);
   free(input);
-  return 0;
-fail:
-  clear_history();
-  da_free(tokens);
-  da_free(compressed);
-  da_free(rpn);
-  free(input);
-  return 1;
+  return retval;
 }

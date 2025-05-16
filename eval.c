@@ -378,7 +378,13 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
         }
         RetValue to_assign = {
             .ret_type = rt, .opt_num = temp, .pos = left.token.pos};
-        shput(*map, left.token.data.str_val, to_assign);
+        if (strcmp(left.token.data.str_val, "prev")) {
+          shput(*map, left.token.data.str_val, to_assign);
+        } else {
+          OptionNumber ret = {.et = ET_StoreToPrev};
+          return (RetValue){
+              .ret_type = RT_Error, .opt_num = ret, .pos = left.token.pos};
+        }
       } else if (rpn->items[i].token.type == TT_SignNeg ||
                  rpn->items[i].token.type == TT_SignPos) {
         if (num_stack.count < 1) {
@@ -459,7 +465,7 @@ void print_rv(const RetValue *rv, int flag) {
         printf("%*s\n[\033[1;31mERROR\033[0m] Invalid Syntax\n",
                offset + (int)rv->pos, marker);
       } else {
-        printf("Invalid Syntax\n");
+        fprintf(stderr, "Invalid Syntax\n");
       }
     } break;
     case ET_DivisionByZero: {
@@ -467,7 +473,7 @@ void print_rv(const RetValue *rv, int flag) {
         printf("%*s\n[\033[1;31mERROR\033[0m] Division/Modulo by zero\n",
                offset + (int)rv->pos, marker);
       } else {
-        printf("Division/Modulo by zero\n");
+        fprintf(stderr, "Division/Modulo by zero\n");
       }
     } break;
     case ET_NotAnInt: {
@@ -476,7 +482,15 @@ void print_rv(const RetValue *rv, int flag) {
             "%*s\n[\033[1;31mERROR\033[0m] Previous result is not an integer\n",
             offset + (int)rv->pos, marker);
       } else {
-        printf("Previous result is not an integer\n");
+        fprintf(stderr, "Previous result is not an integer\n");
+      }
+    } break;
+    case ET_StoreToPrev: {
+      if (!flag) {
+        printf("%*s\n[\033[1;31mERROR\033[0m] Variable prev is reserved\n",
+               offset + (int)rv->pos, marker);
+      } else {
+        fprintf(stderr, "Variable prev is reserved\n");
       }
     } break;
     default:

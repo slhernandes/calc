@@ -1,0 +1,10 @@
+on:
+  workflow_dispatch:
+    jobs:
+      compile:
+        name: compile
+        runs-on: ubuntu-latest
+        steps:
+        - name: compile
+          run: |
+            ./nob

@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+    - name: Install libreadline-dev
+      run: sudo apt update && sudo apt install -y libreadline-dev
+
     - name: Checkout repository
       uses: actions/checkout@v4
 

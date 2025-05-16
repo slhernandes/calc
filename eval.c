@@ -470,6 +470,15 @@ void print_rv(const RetValue *rv, int flag) {
         printf("Division/Modulo by zero\n");
       }
     } break;
+    case ET_NotAnInt: {
+      if (!flag) {
+        printf(
+            "%*s\n[\033[1;31mERROR\033[0m] Previous result is not an integer\n",
+            offset + (int)rv->pos, marker);
+      } else {
+        printf("Previous result is not an integer\n");
+      }
+    } break;
     default:
       UNREACHABLE("Unknown Error");
     }

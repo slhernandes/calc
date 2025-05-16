@@ -63,13 +63,22 @@ Valid operator:
 - ```=```: Assignment
 - ```(``` and ```)```: Parenthesis
 
+Valid commands:
+- `exit`: exits the program
+- `0x`: prints previous result in hexadecimal (only if previous result is integer)
+- `0b`: prints previous result in binary (only if previous result is integer)
+
 Example:
 ```
-calc> a = (150//(10+2^2)+7) * (6 % 4)
+calc> a = (150//(10+2^2) + 7) * (6 % 4)
 [RESULT]: 34
-calc> b = (1337-420)/26.2
+calc> b = (1337 - 420)/26.2
 [RESULT]: 35.000000
-calc> a + b
-[RESULT]: 69.000000
+calc> (a + b) // 1
+[RESULT]: 69
+calc> 0x
+[RESULT]: 0x45
+calc> 0b
+[RESULT]: 0b1000101
 calc> exit
 ```

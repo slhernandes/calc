@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
     } else if (!strcmp(input, "clear")) {
       printf("\e[1;1H\e[2J");
       continue;
-    } else if (!strcmp(input, "x")) {
+    } else if (!strcmp(input, "0x")) {
       switch (res.ret_type) {
       case RT_Int:
       case RT_Int_Bin:
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
       } break;
       default:
         OptionNumber temp_on = (OptionNumber){
-            .et = ET_InvalidSyntax,
+            .et = ET_NotAnInt,
         };
         RetValue temp_rv = {
             .ret_type = RT_Error,
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
         print_rv(&temp_rv, flag);
       }
       continue;
-    } else if (!strcmp(input, "b")) {
+    } else if (!strcmp(input, "0b")) {
       switch (res.ret_type) {
       case RT_Int:
       case RT_Int_Bin:
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
       } break;
       default:
         OptionNumber temp_on = {
-            .et = ET_InvalidSyntax,
+            .et = ET_NotAnInt,
         };
         RetValue temp_rv = {
             .ret_type = RT_Error,

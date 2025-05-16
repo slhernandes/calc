@@ -11,6 +11,7 @@
 typedef enum {
   ET_InvalidSyntax,
   ET_DivisionByZero,
+  ET_NotAnInt,
 } ErrorType;
 
 typedef union {

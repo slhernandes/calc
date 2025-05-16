@@ -159,7 +159,9 @@ int main(int argc, char **argv) {
 #endif
 
     res = eval(&rpn, &map);
-    shput(map, "prev", res);
+    if (res.ret_type != RT_Error) {
+      shput(map, "prev", res);
+    }
 
 #ifdef DEBUG
     printf("Assigned variables: \n");

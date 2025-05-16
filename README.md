@@ -65,6 +65,7 @@ Valid operator:
 
 Valid commands:
 - `exit`: exits the program
+- `help`: show help page
 - `0x`: prints previous result in hexadecimal (only if previous result is integer)
 - `0b`: prints previous result in binary (only if previous result is integer)
 

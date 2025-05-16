@@ -25,6 +25,24 @@ char *trimwhitespace(char *str) {
   return str;
 }
 
+void show_help(char *prog_name, FILE *f) {
+  fprintf(f,
+          "Usage: %s [-n|-h]\n"
+          "\t-n: only output last result. (for piping from "
+          "other command)\n"
+          "\t-h: show this message\n\n"
+          "Valid command:\n"
+          "\texit: exits the program\n"
+          "\thelp: show this page\n"
+          "\t0x  : prints previous result in hexadecimal (only if previous "
+          "result is integer)\n"
+          "\t0b  : prints previous result in binary (only if previous result "
+          "is integer)\n\n"
+          "Valid operators: "
+          "+, -, *, /, /, ^, %%, =, (, )\n",
+          prog_name);
+}
+
 int main(int argc, char **argv) {
   int flag = 0, opt;
   while ((opt = getopt(argc, argv, "nh")) != -1) {
@@ -33,18 +51,11 @@ int main(int argc, char **argv) {
       flag = 1;
     } break;
     case 'h': {
-      printf(
-          "Usage: %s [-n|-h]\n\t-n: only output last result. (for piping from "
-          "other command)\n\t-h: show this message\n",
-          argv[0]);
+      show_help(argv[0], stdout);
       exit(EXIT_SUCCESS);
     } break;
     default: /* '?' */
-      fprintf(
-          stderr,
-          "Usage: %s [-n|-h]\n\t-n: only output last result. (for piping from "
-          "other command)\n\t-h: show this message\n",
-          argv[0]);
+      show_help(argv[0], stderr);
       exit(EXIT_FAILURE);
     }
   }
@@ -120,6 +131,9 @@ int main(int argc, char **argv) {
         print_rv(&temp_rv, flag);
         continue;
       }
+    } else if (!strcmp(input, "help")) {
+      show_help(argv[0], stdout);
+      continue;
     }
     add_history(input);
     tokens.count = 0;

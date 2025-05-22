@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
   NOB_GO_REBUILD_URSELF(argc, argv);
 
   char *program = shift_args(&argc, &argv);
+  UNUSED(program);
   int force = 0;
 
   Cmd cmd = {0};
@@ -47,6 +48,7 @@ int main(int argc, char **argv) {
     } else if (!strcmp(subcmd, "install")) {
       // just in case mkdir_if_not_exists doesn't work
       char *home = getenv("HOME");
+      UNUSED(home);
       int res = file_exists(path_from_home(".local/bin"));
       if (res == 0) {
         mkdir_if_not_exists("./build");

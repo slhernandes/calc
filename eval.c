@@ -347,7 +347,9 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
         // TT_Assign can only be on the bottom of the stack;
         if (i != rpn->count - 1 || num_stack.count < 2) {
           OptionNumber ret = {.et = ET_InvalidSyntax};
-          return (RetValue){.ret_type = RT_Error, .opt_num = ret};
+          return (RetValue){.ret_type = RT_Error,
+                            .opt_num = ret,
+                            .pos = rpn->items[i].token.pos};
         }
         RPNToken left = num_stack.items[num_stack.count - 2];
         RPNToken right = num_stack.items[num_stack.count - 1];
@@ -434,7 +436,9 @@ RetValue eval(const RPNArray *rpn, MapStrRV **map) {
     case TC_Parens:
     case TC_Illegal:
     default:
-      UNREACHABLE("Unreachable!");
+      return (RetValue){.ret_type = RT_Error,
+                        .opt_num = {.et = ET_InvalidSyntax},
+                        .pos = rpn->items[i].token.pos};
     }
   }
   if (num_stack.count == 1) {

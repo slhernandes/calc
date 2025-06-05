@@ -213,7 +213,21 @@ RPNArray infix_to_rpn(const RPNArray *ra) {
   for (size_t i = 0; i < ra_size; i++) {
     switch (ra->items[i].tc) {
     case TC_Operand: {
-      da_append(&ret, ra->items[i]);
+      RPNToken next = ra->items[i];
+      if (i > 0) {
+        RPNToken prev = ra->items[i - 1];
+        if (prev.tc == TC_Operand) {
+          next = ((RPNToken){
+              .tc = TC_Illegal,
+              .token = ((Data){
+                  .data = {0},
+                  .type = TT_Illegal,
+                  .pos = next.token.pos,
+              }),
+          });
+        }
+      }
+      da_append(&ret, next);
     } break;
     case TC_Operator: {
       size_t st_size = op_q.count;
